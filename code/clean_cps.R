@@ -52,6 +52,30 @@ group_by(CPSID = as.factor(CPSID)) %>%
     education= sum(EDUC),
     married= sum(MARRIED)) %>% ungroup()
 
+#each row of cps_data is a FAMILY
+#note... we just calculated the number of people in each family that belong
+#to the above groups. perhaps that isn't the best way? Would proportions be good
+#in addition or instead of sums?!
+#summary(cps_data) # see extremes for food security variables
+#https://cps.ipums.org/cps-action/variables/search
+cps_data <- cps_data %>%
+  mutate(FSSTATUS = ifelse(FSSTATUS %in% c(98,99), NA, FSSTATUS),
+    FSSTATUSMD = ifelse(FSSTATUSMD %in% c(98,99), NA, FSSTATUSMD),
+    FSFOODS = ifelse(FSFOODS %in% c(98,99), NA, FSFOODS),
+    FSWROUTY = ifelse(FSWROUTY %in% c(96,97,98,99), NA, FSWROUTY),
+    FSBAL = ifelse(FSBAL %in% c(96,97,98,99), NA, FSBAL),
+    FSRAWSCRA = ifelse(FSRAWSCRA %in% c(98,99), NA, FSRAWSCRA),#raw score
+    FSTOTXPNC = ifelse(FSTOTXPNC %in% c(999), NA, FSTOTXPNC)) %>%
+  mutate(FSSTATUS = ifelse(FSSTATUS > 1, 1, 0),
+    FSSTATUSMD = ifelse(FSSTATUSMD > 1, 1, 0),
+    FSFOODS = ifelse(FSFOODS > 1, 1, 0),
+    FSWROUTY = ifelse(FSWROUTY > 1, 1, 0),#more missings
+    FSBAL = ifelse(FSBAL > 1, 1, 0),
+    FSRAWSCRA=ifelse(FSRAWSCRA > 1, 1, 0))
+#str(cps_data)
+#summary(cps_data)
+#Note: many of our y variables contain some NA values.
+#Do not use complete.cases or na.omit on the whole dataset.
 
 
 
