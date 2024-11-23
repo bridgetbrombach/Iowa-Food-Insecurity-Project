@@ -132,21 +132,17 @@
             
 **FSWROUTY**: Indicates if, in the past year, the household was worried that 
               they would run out of food and not be able to afford more.
-              
-              ------Levels------
+              \------Levels------
               01: Never True
               02: Sometimes True
               03: Often True
-              
-              If level > 1, then cell gets 1, otherwise 0
-              
-              In other words, if the household responds anything except "Never 
+             \If level > 1, then cell gets 1, otherwise 0
+              \In other words, if the household responds anything except "Never 
               True", this is an indication of food insecurity and given a 1.
               
 **FSBAL**: Indicates whether or not the respondent(s) could not afford to eat 
             balanced meals at any time in the last 12 months.
-            
-            -----Levels-----
+            \-----Levels-----
             01: Never True
             02: Sometimes True
             03: Often True
@@ -160,8 +156,7 @@
                 provided to the 10 item household/adult food security 
                 questionnaire. This raw score is used to determine the food 
                 security of the adults in a household in the past year (FSSTATUS).
-                
-                -----Levels----
+                /-----Levels----
                 00: No Affirmative Responses or Did not Pass Initial Screen
                 01: 1
                 02: 2
