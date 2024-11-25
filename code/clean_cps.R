@@ -10,7 +10,7 @@ cps <- read.csv("data/cps_00005.csv")
 cps <- cps %>%
   mutate(SEX = SEX - 1 , # Create dummy variables
     CHILD = ifelse(AGE < 18, 1, 0),
-    ELDERLY = ifelse(AGE > 64, 1, 0), #CHANGE THIS
+    ELDERLY = ifelse(AGE > 59, 1, 0), #CHANGE THIS
     BLACK = ifelse(RACE==200, 1, 0),
     HISPANIC = ifelse(HISPAN>0, 1, 0),
     EDUC = as.integer(EDUC %in% c(91,92,111,123,124,125)),
