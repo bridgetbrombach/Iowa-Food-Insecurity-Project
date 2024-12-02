@@ -66,9 +66,10 @@ cps_data <- cps_data %>%
     FSWROUTY = ifelse(FSWROUTY %in% c(96,97,98,99), NA, FSWROUTY),
     FSBAL = ifelse(FSBAL %in% c(96,97,98,99), NA, FSBAL),
     FSRAWSCRA = ifelse(FSRAWSCRA %in% c(98,99), NA, FSRAWSCRA),#raw score
-    FSTOTXPNC = ifelse(FSTOTXPNC %in% c(999), NA, FSTOTXPNC)) %>%
+    FSTOTXPNC = ifelse(FSTOTXPNC %in% c(999), NA, FSTOTXPNC),
+    FAMINC=ifelse(FAMINC %in% c(999), NA, FAMINC) %>%
   mutate(FSSTATUS = ifelse(FSSTATUS > 1, 1, 0),
-         case_when(
+         FAMINC=case_when(
            FAMINC < 500 & hhsize == 1 ~ 1,
            FAMINC < 600 & hhsize == 2 ~ 1,
            FAMINC < 710 & hhsize == 3 ~ 1,
@@ -84,19 +85,19 @@ cps_data <- cps_data %>%
            FAMINC < 841 & hhsize == 13 ~ 1,
            FAMINC < 841 & hhsize == 14 ~ 1,
            .default = FAMINC
-         ), #NEW - if under 100-125% poverty level, will be 1
-         FAMINC=ifelse(FSSTATUSMD == 1 & FSSTATUS!=999, 1, 0),
+         ), #NEW - approximate
+         FAMINC=ifelse(FAMINC == 1, 1, 0),
     FSSTATUSMD = ifelse(FSSTATUSMD > 1, 1, 0),
     FSFOODS = ifelse(FSFOODS > 1, 1, 0),
     FSWROUTY = ifelse(FSWROUTY > 1, 1, 0), #more missings
     FSBAL = ifelse(FSBAL > 1, 1, 0),
-    FSRAWSCRA=ifelse(FSRAWSCRA > 1, 1, 0))
+    FSRAWSCRA=ifelse(FSRAWSCRA > 1, 1, 0)))
 #str(cps_data)
-#summary(cps_data)
+summary(cps_data)
 #Note: many of our y variables contain some NA values.
 #Do not use complete.cases or na.omit on the whole dataset.
 
-write.csv(cps_data,"data/cps_clean.csv", row.names = FALSE)
+
 
 
 
