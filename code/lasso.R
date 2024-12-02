@@ -49,8 +49,8 @@ x.train <- model.matrix(FSSTATUSMD ~ . , data = train.df)[,-1]
 x.test <- model.matrix(FSSTATUSMD ~ . , data = test.df)[,-1]
 
 # Create vectors for y variable
-y.train <- as.vector(cps_data_lasso$FSSTATUSMD)
-y.test <- as.vector(cps_data_lasso$FSSTATUSMD)
+y.train <- as.vector(train.df$FSSTATUSMD)
+y.test <- as.vector(test.df$FSSTATUSMD)
 
 ## --- Fitting the model ---
 # 1. Use cross validation to fit (LOTS OF) lasso regressions
