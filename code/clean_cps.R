@@ -1,3 +1,4 @@
+rm(list=ls())
 library(tidyverse) #includes ggplot2 and dplyer
 library(ggthemes) #optional but classy ;)
 library(logistf)#firth's penalized
@@ -77,6 +78,7 @@ cps_data <- cps_data %>%
 #Note: many of our y variables contain some NA values.
 #Do not use complete.cases or na.omit on the whole dataset.
 
+### --- REMOVING NA VALUES ---
 
 
 
