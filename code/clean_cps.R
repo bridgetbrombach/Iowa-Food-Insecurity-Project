@@ -97,7 +97,7 @@ summary(cps_data)
 #Note: many of our y variables contain some NA values.
 #Do not use complete.cases or na.omit on the whole dataset.
 
-write.csv(cps_data,"data/cps_data.csv",row.names=)
+write.csv(cps_data,"data/cps_data.csv",row.names=FALSE)
 
 
 
