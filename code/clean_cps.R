@@ -43,7 +43,7 @@ group_by(CPSID = as.factor(CPSID)) %>%
     FSRAWSCRA = first(FSRAWSCRA),
     FSTOTXPNC = first(FSTOTXPNC),
     FSSTATUS = first(FSSTATUS),
-    FAMINC=first(FSSTATUS), #NEW
+    FAMINC=first(FAMINC), #NEW
     #count of family members in various categories
     female = sum(SEX),
     hispanic = sum(HISPANIC),
@@ -67,7 +67,7 @@ cps_data <- cps_data %>%
     FSBAL = ifelse(FSBAL %in% c(96,97,98,99), NA, FSBAL),
     FSRAWSCRA = ifelse(FSRAWSCRA %in% c(98,99), NA, FSRAWSCRA),#raw score
     FSTOTXPNC = ifelse(FSTOTXPNC %in% c(999), NA, FSTOTXPNC),
-    FAMINC=ifelse(FAMINC %in% c(999), NA, FAMINC) %>%
+    FAMINC=ifelse(FAMINC %in% c(999), NA, FAMINC)) %>%
   mutate(FSSTATUS = ifelse(FSSTATUS > 1, 1, 0),
          FAMINC=case_when(
            FAMINC < 500 & hhsize == 1 ~ 1,
@@ -84,14 +84,14 @@ cps_data <- cps_data %>%
            FAMINC < 841 & hhsize == 12 ~ 1,
            FAMINC < 841 & hhsize == 13 ~ 1,
            FAMINC < 841 & hhsize == 14 ~ 1,
-           .default = FAMINC
+           TRUE ~ FAMINC
          ), #NEW - approximate
          FAMINC=ifelse(FAMINC == 1, 1, 0),
     FSSTATUSMD = ifelse(FSSTATUSMD > 1, 1, 0),
     FSFOODS = ifelse(FSFOODS > 1, 1, 0),
     FSWROUTY = ifelse(FSWROUTY > 1, 1, 0), #more missings
     FSBAL = ifelse(FSBAL > 1, 1, 0),
-    FSRAWSCRA=ifelse(FSRAWSCRA > 1, 1, 0)))
+    FSRAWSCRA=ifelse(FSRAWSCRA > 1, 1, 0))
 #str(cps_data)
 summary(cps_data)
 #Note: many of our y variables contain some NA values.
