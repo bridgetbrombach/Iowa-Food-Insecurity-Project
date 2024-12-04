@@ -121,5 +121,6 @@ ridge_rocCurve <- roc(response = as.factor(test.df.preds$FSSTATUSMD),
                       predictor = test.df.preds$ridge_pred, 
                       levels = c("0", "1")) 
 
-plot(lasso_rocCurve, main="ROC curve for Ridge model on FSSTATUSMD", print.thres = TRUE, print.auc = TRUE)
+plot(ridge_rocCurve, main="ROC curve for Ridge model on FSSTATUSMD", print.thres = TRUE, print.auc = TRUE)
+
 
