@@ -131,23 +131,16 @@ ridge_rocCurve <- roc(response = as.factor(test.df.preds$FSSTATUSMD),
 plot(ridge_rocCurve, print.thres = TRUE, print.auc = TRUE)
 
 
-
-
 ###########RANDOM FOREST##############
 
 #split data in to train and test
 
 RNGkind(sample.kind = "default")
-train.idx <- sample(x = 1:nrow(cps_data), size = .7*nrow(cps_data))
-train.df <- cps_data[train.idx,]
-test.df <- cps_data[-train.idx, select = -c(CPSID)]
-
 
 #Fit a baseline forest 
-
-
-tempforest <- randomForest(as.factor(FSSTATUSMD) ~ hhsize+education+femhispanic+femblack+poverty+donutfamily+hispanic+married+female+
-                             elderly
+tempforest <- randomForest(as.factor(FSSTATUSMD) ~ hhsize+education+femhispanic+femblack+
+                             poverty+donutfamily+hispanic+married+female+elderly,
+                           data=train.df,
                            ntree = 100,
                            mtry = 4,
                            weights = train.df$weight)
@@ -192,8 +185,6 @@ finalforest <- randomForest(as.factor(FSSTATUSMD) ~ hhsize+education+femhispanic
                             importance = TRUE)
 
 pi_hat <- predict(finalforest, test.df, type = "prob")[,"1"]
-
-
 
 rocCurve <- roc(response = test.df$FSSTATUSMD,
                 predictor = pi_hat,
