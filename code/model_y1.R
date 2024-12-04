@@ -108,7 +108,7 @@ lr_ridge_cv <- cv.glmnet(x.train,
 # - Plotting the sample error for each lambda value
 plot(lr_ridge_cv)
 # - Pick out the best optimal lambda value
-best_ridge_lambda <- lr_ridge_cv$ridge.min
+best_ridge_lambda <- lr_ridge_cv$lambda.min
 
 # Fitting the final Model
 ridge <- final_ridge <- glmnet(x.train,
