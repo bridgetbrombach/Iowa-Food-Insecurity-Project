@@ -5,6 +5,13 @@ source("code/clean_acs.R") #clean ACS
 library(tidyverse)
 library(pROC)
 library(glmnet)
+library(lubridate)
+library(randomForest)
+library(ggplot2)
+library(RColorBrewer)
+library(rpart)
+library(rpart.plot)
+library(logistf)
 
 ## --- DATA PREP (same for all four models) ---
 # First I will create a subset of the data that only includes the X variables
@@ -176,8 +183,8 @@ ggplot(data = keeps) +
 # 4 looks to be the optimal number the m that minimizes the 
 # OOB Error Rate
 
-finalforest <- randomForest(as.factor(FSSTATUSMD) ~ hhsize+education+femhispanic+femblack+poverty+donutfamily+hispanic+married+female+
-                              elderly, 
+finalforest <- randomForest(as.factor(FSSTATUSMD) ~ hhsize+education+femhispanic+
+                              femblack+poverty+donutfamily+hispanic+married+female+elderly, 
                             data = train.df,
                             ntree = 1000,
                             mtry = 4,  #chosen from tuning

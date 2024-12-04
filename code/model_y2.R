@@ -5,6 +5,13 @@ source("code/clean_acs.R") #clean ACS
 library(tidyverse)
 library(pROC)
 library(glmnet)
+library(lubridate)
+library(randomForest)
+library(ggplot2)
+library(RColorBrewer)
+library(rpart)
+library(rpart.plot)
+library(logistf)
 
 ## --- DATA PREP (same for all four models) ---
 # First I will create a subset of the data that only includes the X variables
