@@ -14,6 +14,8 @@ cps <- cps %>%
     BLACK = ifelse(RACE==200, 1, 0),
     HISPANIC = ifelse(HISPAN>0, 1, 0),
     EDUC = as.integer(EDUC %in% c(91,92,111,123,124,125)),
+    FEMBLACK=BLACK*SEX,
+    FEMHISPANIC=HISPANIC*SEX,
     EMP = as.integer(EMPSTAT %in% c(1,10,12)),
     MARRIED = as.integer(MARST %in% c(1,2)),
     DIFF = ifelse(DIFFANY==2, 1, 0),
@@ -43,14 +45,17 @@ group_by(CPSID = as.factor(CPSID)) %>%
     FSRAWSCRA = first(FSRAWSCRA),
     FSTOTXPNC = first(FSTOTXPNC),
     FSSTATUS = first(FSSTATUS),
-    FAMINC=first(FAMINC), #NEW
+    poverty=first(FAMINC), #NEW
     #count of family members in various categories
     female = sum(SEX),
     hispanic = sum(HISPANIC),
     black= sum(BLACK),
+    femblack=sum(FEMBLACK),
+    femhispanic=sum(FEMHISPANIC),
     kids= sum(CHILD),
     elderly= sum(ELDERLY),
     education= sum(EDUC),
+    donutfamily=ifelse(kids>0 & kids+elderly==hhsize,1,0),
     married= sum(MARRIED)) %>% ungroup()
 
 #each row of cps_data is a FAMILY
@@ -67,31 +72,32 @@ cps_data <- cps_data %>%
     FSBAL = ifelse(FSBAL %in% c(96,97,98,99), NA, FSBAL),
     FSRAWSCRA = ifelse(FSRAWSCRA %in% c(98,99), NA, FSRAWSCRA),#raw score
     FSTOTXPNC = ifelse(FSTOTXPNC %in% c(999), NA, FSTOTXPNC),
-    FAMINC=ifelse(FAMINC %in% c(999), NA, FAMINC)) %>%
+    poverty=ifelse(poverty %in% c(999), NA, poverty)) %>%
   mutate(FSSTATUS = ifelse(FSSTATUS > 1, 1, 0),
-         FAMINC=case_when(
-           FAMINC < 500 & hhsize == 1 ~ 1,
-           FAMINC < 600 & hhsize == 2 ~ 1,
-           FAMINC < 710 & hhsize == 3 ~ 1,
-           FAMINC < 720 & hhsize == 4 ~ 1,
-           FAMINC < 730 & hhsize == 5 ~ 1,
-           FAMINC < 740 & hhsize == 6 ~ 1,
-           FAMINC < 820 & hhsize == 7 ~ 1,
-           FAMINC < 820 & hhsize == 8 ~ 1,
-           FAMINC < 830 & hhsize == 9 ~ 1,
-           FAMINC < 841 & hhsize == 10 ~ 1,
-           FAMINC < 841 & hhsize == 11 ~ 1,
-           FAMINC < 841 & hhsize == 12 ~ 1,
-           FAMINC < 841 & hhsize == 13 ~ 1,
-           FAMINC < 841 & hhsize == 14 ~ 1,
-           TRUE ~ FAMINC
-         ), #NEW - approximate
-         FAMINC=ifelse(FAMINC == 1, 1, 0),
+         poverty=case_when(
+           poverty < 500 & hhsize == 1 ~ 1,
+           poverty < 600 & hhsize == 2 ~ 1,
+           poverty < 710 & hhsize == 3 ~ 1,
+           poverty < 720 & hhsize == 4 ~ 1,
+           poverty < 730 & hhsize == 5 ~ 1,
+           poverty < 740 & hhsize == 6 ~ 1,
+           poverty < 820 & hhsize == 7 ~ 1,
+           poverty < 820 & hhsize == 8 ~ 1,
+           poverty < 830 & hhsize == 9 ~ 1,
+           poverty < 841 & hhsize == 10 ~ 1,
+           poverty < 841 & hhsize == 11 ~ 1,
+           poverty < 841 & hhsize == 12 ~ 1,
+           poverty < 841 & hhsize == 13 ~ 1,
+           poverty < 841 & hhsize == 14 ~ 1,
+           TRUE ~ poverty), 
+         #NEW - approximate whether a household is in poverty based on 100%-125% poverty levels in the US
+         poverty=ifelse(poverty == 1, 1, 0), #poverty is an x variable
     FSSTATUSMD = ifelse(FSSTATUSMD > 1, 1, 0),
     FSFOODS = ifelse(FSFOODS > 1, 1, 0),
     FSWROUTY = ifelse(FSWROUTY > 1, 1, 0), #more missings
     FSBAL = ifelse(FSBAL > 1, 1, 0),
     FSRAWSCRA=ifelse(FSRAWSCRA > 1, 1, 0))
+cps_clean<-cps_data
 #str(cps_data)
 summary(cps_data)
 #Note: many of our y variables contain some NA values.

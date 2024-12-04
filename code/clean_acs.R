@@ -1,4 +1,3 @@
-#this code should probably go in clean_acs.R...
 acs <- read_sas("data/spm_pu_2022.sas7bdat")
 #to calculate weights (go ahead and just copy/paste this):
 acs <- acs%>%
@@ -10,11 +9,14 @@ acs <- acs%>%
 acs <- acs %>%
   mutate(SEX = Sex - 1 , # since female = 2
          CHILD = ifelse(Age < 18, 1, 0), #SAME as cps definition
-         ELDERLY = ifelse(Age > 64, 1, 0), #SAME as cps definition
+         ELDERLY = ifelse(Age > 59, 1, 0), #SAME as cps definition
          BLACK = ifelse(Race==2, 1, 0), #SAME as cps definition (see data dictionary) 
          HISPANIC = ifelse(Hispanic>0, 1, 0), #SAME as cps definition (see data dictionary) 
-         EDUC = as.integer(Education %in% c(3,4)),
+         EDUC = as.integer(Education %in% c(3,4)), #above college level education
          MARRIED = as.integer(Mar %in% c(1)),
+         poverty=OFFPoor,
+         FEMBLACK=SEX*BLACK,
+         FEMHISPANIC=SEX*HISPANIC,
          PUMA = as.factor(PUMA))
 #aggregate up to family level
 acs_data <- acs %>%
@@ -27,5 +29,8 @@ acs_data <- acs %>%
                                                          elderly= sum(ELDERLY), 
                                                          education= sum(EDUC), 
                                                          married= sum(MARRIED),
+                                                         femblack=sum(FEMBLACK),
+                                                         femhispanic=sum(FEMHISPANIC),
+                                                         donutfamily=ifelse(kids>0 & kids+elderly==hhsize,1,0),
                                                          weight = weight[1],)
 #each row of acs_data is a FAMILY

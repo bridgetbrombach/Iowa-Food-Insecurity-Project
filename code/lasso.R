@@ -13,7 +13,7 @@ library(glmnet)
 # First I will create a subset of the data that only includes the X variables
 
 cps_data_lasso <- cps_data %>% 
-  select(c(FSSTATUSMD,hhsize,education,hispanic,married,female,elderly,FAMINC,weight))
+  select(c(FSSTATUSMD,hhsize,education,hispanic,married,female,elderly,femhispanic,donutfamily,femblack,poverty,weight))
 
 # There are NA values in the FSSTATUSMD column, so I will remove those
 cps_data_lasso <- cps_data_lasso %>% na.omit(cps_data_lasso)
@@ -32,10 +32,10 @@ lr_mle <- glm(FSSTATUSMD ~ .,
   family = binomial(link= "logit"))
 
 # Making test/train matrices
-x.train <- model.matrix(FSSTATUSMD ~ hhsize+education+hispanic+married+female+
-    elderly+FAMINC, data = train.df)[,-1]
-x.test <- model.matrix(FSSTATUSMD ~ hhsize+education+hispanic+married+female+
-    elderly+FAMINC, data = test.df)[,-1]
+x.train <- model.matrix(FSSTATUSMD ~ hhsize+education+femhispanic+femblack+poverty+donutfamily+hispanic+married+female+
+    elderly, data = train.df)[,-1]
+x.test <- model.matrix(FSSTATUSMD ~ hhsize+education+femhispanic+femblack+poverty+donutfamily+hispanic+married+female+
+    elderly, data = test.df)[,-1]
 
 # Create vectors for y variable
 y.train <- as.vector(train.df$FSSTATUSMD)
