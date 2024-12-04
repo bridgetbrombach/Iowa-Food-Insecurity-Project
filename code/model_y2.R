@@ -28,6 +28,11 @@ x.train <- model.matrix(FSBAL ~ hhsize+education+femhispanic+femblack+poverty+do
 x.test <- model.matrix(FSBAL ~ hhsize+education+femhispanic+femblack+poverty+donutfamily+hispanic+married+female+
                          elderly, data = test.df)[,-1]
 
+# Preparing acs for prediction
+acs_data_predict <- acs_data %>% 
+  select(c(hhsize,education,femhispanic,femblack,poverty,donutfamily,hispanic,married,female,elderly))
+acs_data_predict <- as.matrix(acs_data_predict)
+
 # Create vectors for y variable
 y.train <- as.vector(train.df$FSBAL)
 y.test <- as.vector(test.df$FSBAL)
@@ -74,3 +79,9 @@ lasso_rocCurve <- roc(response = as.factor(test.df.preds$FSBAL),
                       levels = c("0", "1")) 
 
 plot(lasso_rocCurve, main="ROC curve for Lasso model on FSBAL", print.thres = TRUE, print.auc = TRUE)
+
+## Using Lasso to predict for ACS
+acs.preds <- acs_data %>% 
+  mutate(
+    lasso_pred = predict(lasso, acs_data_predict, type="response"),
+  )
