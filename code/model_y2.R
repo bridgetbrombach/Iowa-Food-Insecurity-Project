@@ -45,7 +45,7 @@ y.train <- as.vector(train.df$FSBAL)
 y.test <- as.vector(test.df$FSBAL)
 
 # --- Logistic regression model ------------------------------------------------------------
-#this should be after random forest
+#this should be after random forest, using the variables it predicted there
 lr_mle <- glm(FSBAL ~ .,
               data = train.df,
               weights = weight,
@@ -87,29 +87,54 @@ lasso_rocCurve <- roc(response = as.factor(test.df.preds$FSBAL),
 
 plot(lasso_rocCurve, main="ROC curve for Lasso model on FSBAL", print.thres = TRUE, print.auc = TRUE)
 
-## Using Lasso to predict for ACS
-acs.preds <- acs_data %>% 
+
+### --- Ridge Model ------------------------------------------------------------
+## --- Fitting the model ---
+
+# Use cross validation to fit ridge regressions - 
+lr_ridge_cv <- cv.glmnet(x.train, 
+                         y.train, 
+                         weights = train.df$weight,
+                         family=binomial(link="logit"), 
+                         alpha=0)
+
+# Finding the best lambda value
+# - Plotting the sample error for each lambda value
+plot(lr_ridge_cv)
+# - Pick out the best optimal lambda value
+best_ridge_lambda <- lr_ridge_cv$lambda.min
+
+# Fitting the final Model
+ridge <- final_ridge <- glmnet(x.train,
+                               y.train,
+                               family = binomial(link = "logit"),
+                               weights = train.df$weight,
+                               alpha = 0,
+                               lambda = best_ridge_lambda)
+
+## --- Quantify Prediction Performance -----------------------------------------
+test.df.preds <- test.df %>% 
   mutate(
-    lasso_pred = predict(lasso, acs_data_predict, type="response"),
+    ridge_pred = predict(ridge, x.test, type="response")[,1],
   )
 
+ridge_rocCurve <- roc(response = as.factor(test.df.preds$FSBAL),
+                      predictor = test.df.preds$ridge_pred, 
+                      levels = c("0", "1")) 
+
+plot(ridge_rocCurve, print.thres = TRUE, print.auc = TRUE)
 
 
-############RANDOM FOREST FSBAL##############
+###########RANDOM FOREST##############
+
 #split data in to train and test
 
 RNGkind(sample.kind = "default")
-train.idx <- sample(x = 1:nrow(cps_data), size = .7*nrow(cps_data))
-train.df <- cps_data[train.idx,]
-test.df <- cps_data[-train.idx,]
-
 
 #Fit a baseline forest 
-
-
-tempforest <- randomForest(as.factor(FSBAL) ~ hhsize+education+femhispanic+femblack+poverty+donutfamily+hispanic+married+female+
-                             elderly, 
-                           data = train.df,
+tempforest <- randomForest(as.factor(FSBAL) ~ hhsize+education+femhispanic+femblack+
+                             poverty+donutfamily+hispanic+married+female+elderly,
+                           data=train.df,
                            ntree = 100,
                            mtry = 4,
                            weights = train.df$weight)
@@ -145,8 +170,8 @@ ggplot(data = keeps) +
 # 4 looks to be the optimal number the m that minimizes the 
 # OOB Error Rate
 
-finalforest <- randomForest(as.factor(FSBAL) ~ hhsize+education+femhispanic+femblack+poverty+donutfamily+hispanic+married+female+
-                              elderly, 
+finalforest <- randomForest(as.factor(FSBAL) ~ hhsize+education+femhispanic+
+                              femblack+poverty+donutfamily+hispanic+married+female+elderly, 
                             data = train.df,
                             ntree = 1000,
                             mtry = 4,  #chosen from tuning
@@ -155,8 +180,6 @@ finalforest <- randomForest(as.factor(FSBAL) ~ hhsize+education+femhispanic+femb
 
 pi_hat <- predict(finalforest, test.df, type = "prob")[,"1"]
 
-
-
 rocCurve <- roc(response = test.df$FSBAL,
                 predictor = pi_hat,
                 levels = c("0","1"))
@@ -164,13 +187,15 @@ rocCurve <- roc(response = test.df$FSBAL,
 
 plot(rocCurve, print.thres = TRUE, print.auc = TRUE) 
 
+######AGGREGATING AT PUMA LEVEL##########
 
+## Using Lasso to predict for ACS
+acs.preds <- acs_data %>% 
+  mutate(
+    ridge_pred = predict(ridge, acs_data_predict, type="response"),
+  )
 
-
-
-
-
-
-
-
-
+acs_data_predict_agg <- acs.preds %>% 
+  filter(elderly >=1) %>% 
+  group_by(PUMA) %>% 
+  summarise(meanstuff = weighted.mean(ridge_pred, weights = weights))
