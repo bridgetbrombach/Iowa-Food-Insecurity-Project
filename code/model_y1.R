@@ -85,3 +85,40 @@ acs.preds <- acs_data %>%
   mutate(
     lasso_pred = predict(lasso, acs_data_predict, type="response"),
   )
+
+
+### --- Ridge Model ------------------------------------------------------------
+## --- Fitting the model ---
+
+# Use cross validation to fit ridge regressions - 
+lr_ridge_cv <- cv.glmnet(x.train, 
+                         y.train, 
+                         weights = train.df$weight,
+                         family=binomial(link="logit"), 
+                         alpha=0)
+
+# Finding the best lambda value
+# - Plotting the sample error for each lambda value
+plot(lr_ridge_cv)
+# - Pick out the best optimal lambda value
+best_ridge_lambda <- lr_ridge_cv$ridge.min
+
+# Fitting the final Model
+ridge <- final_ridge <- glmnet(x.train,
+                               y.train,
+                               family = binomial(link = "logit"),
+                               weights = train.df$weight,
+                               alpha = 0,
+                               ridge = best_ridge_lambda)
+
+## --- Quantify Prediction Performance -----------------------------------------
+test.df.preds <- test.df %>% 
+  mutate(
+    ridge_pred = predict(ridge, x.test, type="response")[,1],
+  )
+
+ridge_rocCurve <- roc(response = as.factor(test.df.preds$FSBAL),
+                      predictor = test.df.preds$ridge_pred, 
+                      levels = c("0", "1")) 
+
+plot(ridge_rocCurve, print.thres = TRUE, print.auc = TRUE)
