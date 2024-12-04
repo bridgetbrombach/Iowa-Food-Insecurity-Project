@@ -191,9 +191,16 @@ plot(rocCurve, print.thres = TRUE, print.auc = TRUE)
 ######AGGREGATING AT PUMA LEVEL##########
 
 
-acs_data_predict_agg <- acs_data_predict %>% 
+
+## Using Lasso to predict for ACS
+acs.preds <- acs_data %>% 
+  mutate(
+    ridge_pred = predict(ridge, acs_data_predict, type="response"),
+  )
+
+acs_data_predict_agg <- acs.preds %>% 
   filter(elderly >=1) %>% 
   group_by(PUMA) %>% 
-  summarise(meanstuff = weighted.mean(your preds, weights = weights))
+  summarise(meanstuff = weighted.mean(ridge_pred, weights = weights))
 
 
