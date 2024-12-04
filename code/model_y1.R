@@ -117,7 +117,7 @@ test.df.preds <- test.df %>%
     ridge_pred = predict(ridge, x.test, type="response")[,1],
   )
 
-ridge_rocCurve <- roc(response = as.factor(test.df.preds$FSBAL),
+ridge_rocCurve <- roc(response = as.factor(test.df.preds$FSSTATUSMD),
                       predictor = test.df.preds$ridge_pred, 
                       levels = c("0", "1")) 
 
