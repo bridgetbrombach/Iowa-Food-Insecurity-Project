@@ -78,7 +78,7 @@ lasso_rocCurve <- roc(response = as.factor(test.df.preds$FSSTATUSMD),
                       predictor = test.df.preds$lasso_pred, 
                       levels = c("0", "1")) 
 
-plot(lasso_rocCurve, main="ROC curve for Lasso model on FSBAL", print.thres = TRUE, print.auc = TRUE)
+plot(lasso_rocCurve, main="ROC curve for Lasso model on FSSTATUSMD", print.thres = TRUE, print.auc = TRUE)
 
 ## Using Lasso to predict for ACS
 acs.preds <- acs_data %>% 
