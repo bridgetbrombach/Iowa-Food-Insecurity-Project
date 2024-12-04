@@ -193,3 +193,13 @@ rocCurve <- roc(response = test.df$FSSTATUSMD,
 
 plot(rocCurve, print.thres = TRUE, print.auc = TRUE) 
 
+
+######AGGREGATING AT PUMA LEVEL##########
+
+
+acs_data_predict_agg <- acs_data_predict %>% 
+  filter(elderly >=1) %>% 
+  group_by(PUMA) %>% 
+  summarise(meanstuff = weighted.mean(your preds, weights = weights))
+
+
