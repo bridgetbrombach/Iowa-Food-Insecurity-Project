@@ -109,7 +109,7 @@ ridge <- final_ridge <- glmnet(x.train,
                                family = binomial(link = "logit"),
                                weights = train.df$weight,
                                alpha = 0,
-                               ridge = best_ridge_lambda)
+                               lambda = best_ridge_lambda)
 
 ## --- Quantify Prediction Performance -----------------------------------------
 test.df.preds <- test.df %>% 
