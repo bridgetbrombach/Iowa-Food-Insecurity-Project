@@ -87,12 +87,6 @@ lasso_rocCurve <- roc(response = as.factor(test.df.preds$FSSTATUSMD),
 
 plot(lasso_rocCurve, main="ROC curve for Lasso model on FSSTATUSMD", print.thres = TRUE, print.auc = TRUE)
 
-## Using Lasso to predict for ACS
-acs.preds <- acs_data %>% 
-  mutate(
-    lasso_pred = predict(lasso, acs_data_predict, type="response"),
-  )
-
 
 ### --- Ridge Model ------------------------------------------------------------
 ## --- Fitting the model ---
