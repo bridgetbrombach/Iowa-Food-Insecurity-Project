@@ -12,7 +12,7 @@ cps <- cps %>%
     CHILD = ifelse(AGE < 18, 1, 0),
     WORKING_AGE = ifelse(AGE > 18 & AGE < 60, 1, 0),
     ELDERLY = ifelse(AGE > 59, 1, 0), 
-    ASIAN = ifelse(RACE==651, 1, RACE),
+    ASIAN = ifelse(RACE==651, 1, 0),
     BLACK = ifelse(RACE==200, 1, 0),
     HISPANIC = ifelse(HISPAN>0, 1, 0),
     EDUC = as.integer(EDUC %in% c(91,92,111,123,124,125)),
