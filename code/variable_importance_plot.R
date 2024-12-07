@@ -16,7 +16,9 @@ library(logistf)
 ## --- DATA PREP ---
 
 cps_data_imp <- cps_data %>% 
-  select(c(FSSTATUS, hhsize,education,hispanic,married,female,elderly,femhispanic,donutfamily,femblack,poverty,weight))
+  select(c(FSSTATUS, hhsize,education,hispanic,black,asian,married,female,elderly,kids,
+           working,femhispanic,donutfamily,femblack,poverty,
+           elmar,eled,elfem,elblack,elhispanic,elasian,workeduc,weight))
 
 # There are NA values in the FSSTATUSMD column, so remove those -- 
 cps_data_imp <- cps_data_imp %>% na.omit(cps_data_imp)
@@ -31,8 +33,9 @@ test.df <- cps_data_imp[-train.idx,]
 
 #### TREE FITTING and INTERPRETTION -------
 
-tree <- rpart(FSSTATUS ~ hhsize + education + femhispanic + femblack +
-                poverty + donutfamily + hispanic + married + female + elderly,
+tree <- rpart(FSSTATUS ~ hhsize+education+hispanic+black+asian+married+female+elderly+kids+
+                working+femhispanic+donutfamily+femblack+poverty+
+                elmar+eled+elfem+elblack+elhispanic+elasian+workeduc,
                data = train.df,
                method = 'class')
 
