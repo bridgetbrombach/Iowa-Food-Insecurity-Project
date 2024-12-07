@@ -1,43 +1,38 @@
-rm(list = ls())
-# Step 1: Install and Load Libraries
+
+# Install and Load Libraries
 
 library(sf)
 library(dplyr)
 library(leaflet)
 
-# Step 2: Get County Boundaries
-# Download simplified county boundaries with FIPS codes
+#  Get County Boundaries
+#https://usa.ipums.org/usa/volii/boundaries.shtml
 puma <- st_read("data/ipums_puma_2020.shp")
 
 acs_data_predict_agg_FSSTATUS <- acs_data_predict_agg_FSSTATUS %>% 
   rename(GEOID = PUMA)
 
 
-# Step 4: Merge Data
-# Merge PUMA shapefile with ACS data
+# Merge Data
+# Merge PUMA shapefile with ACS Predictions data
 puma_data <- puma %>%
   left_join(acs_data_predict_agg_FSSTATUS, by = "GEOID")
 
-# Filter for Iowa PUMAs (adjust based on the correct column for state filtering)
-iowa_puma <- puma_data %>% filter(State == "Iowa")  # Replace STATE_NAME if needed
+# Filter for Iowa PUMAs by State Column
+iowa_puma <- puma_data %>% filter(State == "Iowa")  
 
 #Manually Assign Coordinate Reference System
 st_crs(iowa_puma) <- 26915
 
-#Transfrom CRS to Lat/Long for use in Map
+#Transform CRS to Lat/Long for use in Map
 iowa_puma <- st_transform(iowa_puma, 4326)
 
-# Check the data
-head(iowa_puma)
-summary(iowa_puma$meanstuff)
 
 
-# Step 5: Create a Color Palette
-#pal <- colorQuantile("YlOrRd", domain = iowa_puma$meanstuff, n = 5)
-
+# Create quantiles
 breaks <- quantile(iowa_puma$meanstuff, probs = seq(0, 1, length.out = 6), na.rm = TRUE)
 
-# Step 3: Create custom labels based on the quantiles
+# Create custom labels based on the quantiles
 labels <- sapply(1:(length(breaks) - 1), function(i) {
   paste0(
     "From ", 
@@ -47,9 +42,11 @@ labels <- sapply(1:(length(breaks) - 1), function(i) {
   )
 })
 
+
+# Create a Color Palette
 pal <- colorBin("YlOrRd", domain = iowa_puma$meanstuff, bins = breaks, na.color = "transparent")
 
-# Step 6: Create the Interactive Map
+# Create the Map
 leaflet(iowa_puma) %>%
   addTiles() %>%  # Add base map tiles
   addPolygons(
@@ -62,10 +59,10 @@ leaflet(iowa_puma) %>%
       color = "black",
       bringToFront = TRUE
     ),
-    label = ~paste0("PUMA Name: ", Name, "<br>",
+    label = ~paste0("PUMA Name: ", Name, 
                     "Value: ", meanstuff),  # Popup label showing meanstuff
-    popup = ~paste0("<strong>PUMA:</strong> ", Name, "<br>",
-                    "<strong>Value:</strong> ", meanstuff)
+    popup = ~paste0("PUMA:", Name, 
+                    "Value: ", meanstuff)
   ) %>%
   addLegend(
     position = "bottomright",
@@ -76,3 +73,5 @@ leaflet(iowa_puma) %>%
     labels = labels
 
   )
+
+
