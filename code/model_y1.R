@@ -210,7 +210,7 @@ rocCurve <- roc(response = test.df$FSSTATUS,
                 levels = c("0","1"))
 
 
-plot(rocCurve, print.thres = TRUE, print.auc = TRUE) 
+plot(rocCurve, print.thres = TRUE, main="ROC curve for Random Forest model on FSSTATUS", print.auc = TRUE) 
 
 ######AGGREGATING AT PUMA LEVEL##########
 
@@ -226,3 +226,12 @@ acs_data_predict_agg_FSSTATUS <- acs.preds %>%
   summarise(meanstuff = weighted.mean(ridge_pred, weights = weights))
 
 write.csv(acs_data_predict_agg_FSSTATUS,"data/acs_pred_FSSTATUS.csv",row.names=FALSE)
+
+
+### --- PLOT THE ROC CURVES ----
+par(mfrow=c(3,1))
+plot(lasso_rocCurve, main="ROC curve for Lasso model on FSSTATUS", print.thres = TRUE, print.auc = TRUE)
+plot(ridge_rocCurve, main="ROC curve for Ridge model on FSSTATUS",print.thres = TRUE, print.auc = TRUE)
+plot(rocCurve, print.thres = TRUE, main="ROC curve for Random Forest model on FSSTATUS", print.auc = TRUE) 
+
+
