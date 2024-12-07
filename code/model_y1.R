@@ -233,3 +233,8 @@ acs_data_predict_agg_FSSTATUS <- acs_data_predict_agg_FSSTATUS %>%
 
 write.csv(acs_data_predict_agg_FSSTATUS,"data/acs_pred_FSSTATUS.csv",row.names=FALSE)
 
+### --- GRAPH THE ROC CURVES ------------
+par(mfrow=c(3,1))
+plot(lasso_rocCurve, main="ROC curve for Lasso model on FSSTATUS", print.thres = TRUE, print.auc = TRUE)
+plot(ridge_rocCurve, main="ROC curve for Ridge model on FSSTATUS",print.thres = TRUE, print.auc = TRUE)
+plot(rocCurve, print.thres = TRUE, main="ROC curve for Random Forest model on FSSTATUS", print.auc = TRUE) 
