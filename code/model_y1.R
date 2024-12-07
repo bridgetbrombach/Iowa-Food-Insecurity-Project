@@ -132,23 +132,25 @@ ridge_rocCurve <- roc(response = as.factor(test.df.preds$FSSTATUS),
 
 plot(ridge_rocCurve, main="ROC curve for Ridge model on FSSTATUS",print.thres = TRUE, print.auc = TRUE)
 
+# ---- CHOOSING OUR MODEL -----
+
+# The AUC for the Ridge model is .795, which is greater than Lasso's AUC curve of .794
+# We will be using the Ridge model.
+
 # ---- INTERPRETATIONS FOR THE RIDGE MODEL ----
-# the area under the curve is 0.791
+# the area under the curve is 0.795
 
-# if we set pi* = 0.140, we can achieve a specificity of 0.813, and 
-# sensitivity of 0.624. 
-
+# if we set pi* = 0.155, we can achieve a specificity of 0.835, and 
+# sensitivity of 0.617. 
 
 # in other words, the model classifies a household as food insecure if the predicted 
-# probability of food insecurity is greater than or equal to 0.140.
+# probability of food insecurity is greater than or equal to 0.155.
 
-# the model correctly identifies 81.3% of households that are not food insecure
+# the model correctly identifies 83.5% of households that are not food insecure
 # (those who have sufficient food resources).
 
-# the model correctly identifies 62.4% of households that are food insecure
+# the model correctly identifies 61.7% of households that are food insecure
 # (those who lack adequate food resources).
-
-
 
 ###########RANDOM FOREST##############
 

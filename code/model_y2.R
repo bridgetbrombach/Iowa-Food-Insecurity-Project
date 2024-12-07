@@ -132,23 +132,30 @@ ridge_rocCurve <- roc(response = as.factor(test.df.preds$FSWROUTY),
 
 plot(ridge_rocCurve, main="ROC curve for Ridge model on FSWROUTY",print.thres = TRUE, print.auc = TRUE)
 
-# ---- INTERPRETATIONS FOR THE RIDGE MODEL ----
-# the area under the curve is 0.791
+# --- CHOOSING THE MODEL -----
 
-# if we set pi* = 0.140, we can achieve a specificity of 0.813, and 
-# sensitivity of 0.624. 
+# Both Lasso and Ridge have the same AUC: .693.
+# Where they differ is the pi* - Lasso has .422 and Ridge has 0.369
 
+# We chose Ridge because it's more important for us to have a higher sensitivity
+# It's more important that Wesley Life correctly predict food insecurity, 
+# than for them to correctly predict when a household is NOT food insecure.
+
+# ---- INTERPRETATIONS FOR THE LASSO MODEL ----
+
+# the area under the curve is .693.
+
+# if we set pi* = 0.369, we can achieve a specificity of 0.621, and 
+# sensitivity of 0.68. 
 
 # in other words, the model classifies a household as food insecure if the predicted 
-# probability of food insecurity is greater than or equal to 0.140.
+# probability of food insecurity is greater than or equal to 0.369.
 
-# the model correctly identifies 81.3% of households that are not food insecure
+# the model correctly identifies 68.0% of households that are not food insecure
 # (those who have sufficient food resources).
 
-# the model correctly identifies 62.4% of households that are food insecure
+# the model correctly identifies 62.1% of households that are food insecure
 # (those who lack adequate food resources).
-
-
 
 ###########RANDOM FOREST##############
 
