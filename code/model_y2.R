@@ -242,6 +242,6 @@ write.csv(acs_data_predict_agg_FSWROUTY,"data/acs_pred_FSWROUTY.csv",row.names=F
 
 ### --- GRAPH THE ROC CURVES ------------
 par(mfrow=c(3,1))
-plot(lasso_rocCurve, main="ROC curve for Lasso model on FSWROUTY", print.thres = TRUE, print.auc = TRUE)
-plot(ridge_rocCurve, main="ROC curve for Ridge model on FSWROUTY",print.thres = TRUE, print.auc = TRUE)
-plot(rocCurve, print.thres = TRUE, main="ROC curve for Random Forest model on FSWROUTY", print.auc = TRUE)
+plot(lasso_rocCurve, main="ROC Curves for FSBAL: Could not afford to eat balanced meals in the past year\nLasso model", print.thres = TRUE, print.auc = TRUE)
+plot(ridge_rocCurve, main="Ridge Model",print.thres = TRUE, print.auc = TRUE)
+plot(rocCurve, print.thres = TRUE, main="Random Forest", print.auc = TRUE) 
