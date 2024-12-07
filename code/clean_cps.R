@@ -4,21 +4,30 @@ library(logistf)#firth's penalized
 library(glmnet) # for fitting lasso, ridge regressions
 library(haven) #for reading in SAS data exports
 
-cps <- read.csv("data/cps_00006.csv")
+cps <- read.csv("data/cps_00007.csv")
 
 #each row of cps is an INDIVIDUAL within a family
 cps <- cps %>%
   mutate(SEX = SEX - 1 , # Create dummy variables
     CHILD = ifelse(AGE < 18, 1, 0),
-    ELDERLY = ifelse(AGE > 59, 1, 0), #CHANGE THIS
+    WORKING_AGE = ifelse(AGE > 18 & AGE < 60, 1, 0),
+    ELDERLY = ifelse(AGE > 59, 1, 0), 
+    ASIAN = ifelse(RACE==651, 1, RACE),
     BLACK = ifelse(RACE==200, 1, 0),
     HISPANIC = ifelse(HISPAN>0, 1, 0),
     EDUC = as.integer(EDUC %in% c(91,92,111,123,124,125)),
     FEMBLACK=BLACK*SEX,
     FEMHISPANIC=HISPANIC*SEX,
+    FEMASIAN=ASIAN*SEX,
     EMP = as.integer(EMPSTAT %in% c(1,10,12)),
     MARRIED = as.integer(MARST %in% c(1,2)),
-    DIFF = ifelse(DIFFANY==2, 1, 0),
+    ELMAR = ELDERLY*MARRIED,
+    ELED = ELDERLY*EDUC,
+    ELFEM = SEX*ELDERLY,
+    ELBLACK= ELDERLY*BLACK,
+    ELASIAN=ELDERLY*ASIAN,
+    ELHISPANIC=ELDERLY*HISPANIC,
+    WORKEDUC=WORKING_AGE*EDUC,
     COUNTY = as.factor(COUNTY))
 
 #currently, one row of cps = one individual
@@ -45,13 +54,23 @@ group_by(CPSID = as.factor(CPSID)) %>%
     FSRAWSCRA = first(FSRAWSCRA),
     FSTOTXPNC = first(FSTOTXPNC),
     FSSTATUS = first(FSSTATUS),
+    FSSKIPYR=first(FSSKIPYR),
     poverty=first(FAMINC), #NEW
     #count of family members in various categories
+    working=sum(WORKING_AGE),
+    workeduc=sum(WORKEDUC),
+    asian=sum(ASIAN),
+    elasian=sum(ELASIAN),
     female = sum(SEX),
     hispanic = sum(HISPANIC),
     black= sum(BLACK),
     femblack=sum(FEMBLACK),
     femhispanic=sum(FEMHISPANIC),
+    elmar=sum(ELMAR),
+    eled= sum(ELED),
+    elfem=sum(ELFEM),
+    elblack=sum(ELBLACK),
+    elhispanic=sum(ELHISPANIC),
     kids= sum(CHILD),
     elderly= sum(ELDERLY),
     education= sum(EDUC),
@@ -70,6 +89,7 @@ cps_data <- cps_data %>%
     FSFOODS = ifelse(FSFOODS %in% c(98,99), NA, FSFOODS),
     FSWROUTY = ifelse(FSWROUTY %in% c(96,97,98,99), NA, FSWROUTY),
     FSBAL = ifelse(FSBAL %in% c(96,97,98,99), NA, FSBAL),
+    FSSKIPYR = ifelse(FSSKIPYR %in% c(96,97,98,99), NA, FSSKIPYR),
     FSRAWSCRA = ifelse(FSRAWSCRA %in% c(98,99), NA, FSRAWSCRA),#raw score
     FSTOTXPNC = ifelse(FSTOTXPNC %in% c(999), NA, FSTOTXPNC),
     poverty=ifelse(poverty %in% c(999), NA, poverty)) %>%
@@ -94,6 +114,7 @@ cps_data <- cps_data %>%
          poverty=ifelse(poverty == 1, 1, 0), #poverty is an x variable
     FSSTATUSMD = ifelse(FSSTATUSMD > 1, 1, 0),
     FSFOODS = ifelse(FSFOODS > 1, 1, 0),
+    FSSKIPYR = ifelse(FSSKIPYR > 1, 1, 0),
     FSWROUTY = ifelse(FSWROUTY > 1, 1, 0), #more missings
     FSBAL = ifelse(FSBAL > 1, 1, 0),
     FSRAWSCRA=ifelse(FSRAWSCRA > 1, 1, 0))

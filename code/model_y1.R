@@ -16,37 +16,45 @@ library(logistf)
 ## --- DATA PREP (same for all four models) ---
 # First I will create a subset of the data that only includes the X variables
 
-cps_data_lasso <- cps_data %>% 
-  select(c(FSSTATUSMD,hhsize,education,hispanic,married,female,elderly,femhispanic,donutfamily,femblack,poverty,weight))
+cps_data_models <- cps_data %>% 
+  select(c(FSSTATUS,
+           hhsize,education,hispanic,black,asian,married,female,elderly,kids,
+           working,femhispanic,donutfamily,femblack,poverty,
+           elmar,eled,elfem,elblack,elhispanic,elasian,workeduc,
+           weight))
 
-# There are NA values in the FSSTATUSMD column, so I will remove those
-cps_data_lasso <- cps_data_lasso %>% na.omit(cps_data_lasso)
+# There are NA values in the FSSTATUS column, so I will remove those
+cps_data_models <- cps_data_models %>% na.omit(cps_data_models$FSSTATUS)
 
 # Splitting the data into train and testing data sets
 RNGkind(sample.kind="default")
 set.seed(12345)
-train.idx <- sample(x=1:nrow(cps_data_lasso),size=.7*nrow(cps_data_lasso))
-train.df <- cps_data_lasso[train.idx,]
-test.df <- cps_data_lasso[-train.idx,]
+train.idx <- sample(x=1:nrow(cps_data_models),size=.7*nrow(cps_data_models))
+train.df <- cps_data_models[train.idx,]
+test.df <- cps_data_models[-train.idx,]
 
 # Making test/train matrices
-x.train <- model.matrix(FSSTATUSMD ~ hhsize+education+femhispanic+femblack+poverty+donutfamily+hispanic+married+female+
-                          elderly, data = train.df)[,-1]
-x.test <- model.matrix(FSSTATUSMD ~ hhsize+education+femhispanic+femblack+poverty+donutfamily+hispanic+married+female+
-                         elderly, data = test.df)[,-1]
+x.train <- model.matrix(FSSTATUS ~ hhsize+education+hispanic+black+asian+married+female+elderly+kids+
+                        working+femhispanic+donutfamily+femblack+poverty+
+                        elmar+eled+elfem+elblack+elhispanic+elasian+workeduc, data = train.df)[,-1]
+x.test <- model.matrix(FSSTATUS ~ hhsize+education+hispanic+black+asian+married+female+elderly+kids+
+                         working+femhispanic+donutfamily+femblack+poverty+
+                         elmar+eled+elfem+elblack+elhispanic+elasian+workeduc, data = test.df)[,-1]
 
 # Preparing acs for prediction
 acs_data_predict <- acs_data %>% 
-  select(c(hhsize,education,femhispanic,femblack,poverty,donutfamily,hispanic,married,female,elderly))
+  select(c(hhsize,education,hispanic,black,asian,married,female,elderly,kids,
+           working,femhispanic,donutfamily,femblack,poverty,
+           elmar,eled,elfem,elblack,elhispanic,elasian,workeduc))
 acs_data_predict <- as.matrix(acs_data_predict)
 
 # Create vectors for y variable
-y.train <- as.vector(train.df$FSSTATUSMD)
-y.test <- as.vector(test.df$FSSTATUSMD)
+y.train <- as.vector(train.df$FSSTATUS)
+y.test <- as.vector(test.df$FSSTATUS)
 
 # --- Logistic regression model ------------------------------------------------------------
 #this should be after random forest, using the variables it predicted there
-lr_mle <- glm(FSSTATUSMD ~ .,
+lr_mle <- glm(FSSTATUS ~ .,
               data = train.df,
               weights = weight,
               family = binomial(link= "logit"))
@@ -81,11 +89,11 @@ test.df.preds <- test.df %>%
     lasso_pred = predict(lasso, x.test, type="response")[,1],
   )
 
-lasso_rocCurve <- roc(response = as.factor(test.df.preds$FSSTATUSMD),
+lasso_rocCurve <- roc(response = as.factor(test.df.preds$FSSTATUS),
                       predictor = test.df.preds$lasso_pred, 
                       levels = c("0", "1")) 
 
-plot(lasso_rocCurve, main="ROC curve for Lasso model on FSSTATUSMD", print.thres = TRUE, print.auc = TRUE)
+plot(lasso_rocCurve, main="ROC curve for Lasso model on FSSTATUS", print.thres = TRUE, print.auc = TRUE)
 
 
 ### --- Ridge Model ------------------------------------------------------------
@@ -118,11 +126,11 @@ test.df.preds <- test.df %>%
     ridge_pred = predict(ridge, x.test, type="response")[,1],
   )
 
-ridge_rocCurve <- roc(response = as.factor(test.df.preds$FSSTATUSMD),
+ridge_rocCurve <- roc(response = as.factor(test.df.preds$FSSTATUS),
                       predictor = test.df.preds$ridge_pred, 
                       levels = c("0", "1")) 
 
-plot(ridge_rocCurve, print.thres = TRUE, print.auc = TRUE)
+plot(ridge_rocCurve, main="ROC curve for Ridge model on FSSTATUS",print.thres = TRUE, print.auc = TRUE)
 
 
 ###########RANDOM FOREST##############
@@ -132,7 +140,7 @@ plot(ridge_rocCurve, print.thres = TRUE, print.auc = TRUE)
 RNGkind(sample.kind = "default")
 
 #Fit a baseline forest 
-tempforest <- randomForest(as.factor(FSSTATUSMD) ~ hhsize+education+femhispanic+femblack+
+tempforest <- randomForest(as.factor(FSSTATUS) ~ hhsize+education+femhispanic+femblack+
                              poverty+donutfamily+hispanic+married+female+elderly,
                            data=train.df,
                            ntree = 100,
@@ -150,7 +158,7 @@ keeps <- data.frame(m = rep(NA, length(mtry)),
 for(idx in 1:length(mtry)){
   print(paste0("Trying m = ", mtry[idx]))
   
-  tempforest <- randomForest(as.factor(FSSTATUSMD) ~ hhsize+education+femhispanic+femblack+poverty+donutfamily+hispanic+married+female+
+  tempforest <- randomForest(as.factor(FSSTATUS) ~ hhsize+education+femhispanic+femblack+poverty+donutfamily+hispanic+married+female+
                                elderly, 
                              data = train.df,
                              ntree = 1000,
@@ -159,7 +167,7 @@ for(idx in 1:length(mtry)){
   
   keeps[idx, "m"] <- mtry[idx]
   
-  keeps[idx, "OOB_err_rate"] <- mean(predict(tempforest) != train.df$FSSTATUSMD)
+  keeps[idx, "OOB_err_rate"] <- mean(predict(tempforest) != train.df$FSSTATUS)
 }
 
 ggplot(data = keeps) +
@@ -170,7 +178,7 @@ ggplot(data = keeps) +
 # 4 looks to be the optimal number the m that minimizes the 
 # OOB Error Rate
 
-finalforest <- randomForest(as.factor(FSSTATUSMD) ~ hhsize+education+femhispanic+
+finalforest <- randomForest(as.factor(FSSTATUS) ~ hhsize+education+femhispanic+
                               femblack+poverty+donutfamily+hispanic+married+female+elderly, 
                             data = train.df,
                             ntree = 1000,
@@ -180,17 +188,14 @@ finalforest <- randomForest(as.factor(FSSTATUSMD) ~ hhsize+education+femhispanic
 
 pi_hat <- predict(finalforest, test.df, type = "prob")[,"1"]
 
-rocCurve <- roc(response = test.df$FSSTATUSMD,
+rocCurve <- roc(response = test.df$FSSTATUS,
                 predictor = pi_hat,
                 levels = c("0","1"))
 
 
 plot(rocCurve, print.thres = TRUE, print.auc = TRUE) 
 
-
 ######AGGREGATING AT PUMA LEVEL##########
-
-
 
 ## Using Lasso to predict for ACS
 acs.preds <- acs_data %>% 
@@ -198,7 +203,7 @@ acs.preds <- acs_data %>%
     ridge_pred = predict(ridge, acs_data_predict, type="response"),
   )
 
-acs_data_predict_agg <- acs.preds %>% 
+acs_data_predict_agg_FSSTATUS <- acs.preds %>% 
   filter(elderly >=1) %>% 
   group_by(PUMA) %>% 
   summarise(meanstuff = weighted.mean(ridge_pred, weights = weights))
