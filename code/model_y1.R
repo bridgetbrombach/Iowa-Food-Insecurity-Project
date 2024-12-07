@@ -223,6 +223,13 @@ acs.preds <- acs_data %>%
 acs_data_predict_agg_FSSTATUS <- acs.preds %>% 
   filter(elderly >=1) %>% 
   group_by(PUMA) %>% 
-  summarise(meanstuff = weighted.mean(ridge_pred, weights = weights))
+  summarise(proportion_of_population = weighted.mean(ridge_pred, weights = weights))
+
+total_elderly <- read.csv("data/iowa_seniors_by_puma.csv")
+
+acs_data_predict_agg_FSSTATUS <- acs_data_predict_agg_FSSTATUS %>%
+  mutate(count_of_seniors = total_elderly$senior_population*proportion_of_population,
+         total_senior_pop=total_elderly$senior_population)
 
 write.csv(acs_data_predict_agg_FSSTATUS,"data/acs_pred_FSSTATUS.csv",row.names=FALSE)
+

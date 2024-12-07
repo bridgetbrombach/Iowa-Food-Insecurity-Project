@@ -99,20 +99,20 @@ plot(lasso_rocCurve, main="ROC curve for Lasso model on FSWROUTY", print.thres =
 ### --- Ridge Model ------------------------------------------------------------
 ## --- Fitting the model ---
 
-# Use cross validation to fit ridge regressions - 
+# ---- Use cross validation to fit ridge regressions -----
 lr_ridge_cv <- cv.glmnet(x.train, 
                          y.train, 
                          weights = train.df$weight,
                          family=binomial(link="logit"), 
                          alpha=0)
 
-# Finding the best lambda value
+# ---- Finding the best lambda value -----
 # - Plotting the sample error for each lambda value
 plot(lr_ridge_cv)
 # - Pick out the best optimal lambda value
 best_ridge_lambda <- lr_ridge_cv$lambda.min
 
-# Fitting the final Model
+# ---- Fitting the final Model ----
 ridge <- final_ridge <- glmnet(x.train,
                                y.train,
                                family = binomial(link = "logit"),
@@ -120,7 +120,7 @@ ridge <- final_ridge <- glmnet(x.train,
                                alpha = 0,
                                lambda = best_ridge_lambda)
 
-## --- Quantify Prediction Performance -----------------------------------------
+## --- Quantify Prediction Performance ----
 test.df.preds <- test.df %>% 
   mutate(
     ridge_pred = predict(ridge, x.test, type="response")[,1],
@@ -131,6 +131,23 @@ ridge_rocCurve <- roc(response = as.factor(test.df.preds$FSWROUTY),
                       levels = c("0", "1")) 
 
 plot(ridge_rocCurve, main="ROC curve for Ridge model on FSWROUTY",print.thres = TRUE, print.auc = TRUE)
+
+# ---- INTERPRETATIONS FOR THE RIDGE MODEL ----
+# the area under the curve is 0.791
+
+# if we set pi* = 0.140, we can achieve a specificity of 0.813, and 
+# sensitivity of 0.624. 
+
+
+# in other words, the model classifies a household as food insecure if the predicted 
+# probability of food insecurity is greater than or equal to 0.140.
+
+# the model correctly identifies 81.3% of households that are not food insecure
+# (those who have sufficient food resources).
+
+# the model correctly identifies 62.4% of households that are food insecure
+# (those who lack adequate food resources).
+
 
 
 ###########RANDOM FOREST##############
@@ -200,13 +217,19 @@ plot(rocCurve, print.thres = TRUE, print.auc = TRUE)
 ## Using Lasso to predict for ACS
 acs.preds <- acs_data %>% 
   mutate(
-    ridge_pred = predict(lasso, acs_data_predict, type="response"),
+    ridge_pred = predict(ridge, acs_data_predict, type="response"),
   )
 
 acs_data_predict_agg_FSWROUTY <- acs.preds %>% 
   filter(elderly >=1) %>% 
   group_by(PUMA) %>% 
-  summarise(predictions = weighted.mean(ridge_pred, weights = weights))
+  summarise(proportion_of_population = weighted.mean(ridge_pred, weights = weights))
+
+total_elderly <- read.csv("data/iowa_seniors_by_puma.csv")
+
+acs_data_predict_agg_FSWROUTY <- acs_data_predict_agg_FSWROUTY %>%
+  mutate(count_of_seniors = total_elderly$senior_population*proportion_of_population,
+         total_senior_pop=total_elderly$senior_population)
 
 write.csv(acs_data_predict_agg_FSWROUTY,"data/acs_pred_FSWROUTY.csv",row.names=FALSE)
 
