@@ -3,3 +3,5 @@
 .RData
 .Ruserdata
 data/spm_pu_2022.sas7bdat
+data\acs_pred_FSSTATUS.csv
+data\acs_pred_FSWROUTY.csv
