@@ -89,11 +89,11 @@ test.df.preds <- test.df %>%
     lasso_pred = predict(lasso, x.test, type="response")[,1],
   )
 
-lasso_rocCurve <- roc(response = as.factor(test.df.preds$FSSTATUS),
+FSSTATUS_lasso_rocCurve <- roc(response = as.factor(test.df.preds$FSSTATUS),
                       predictor = test.df.preds$lasso_pred, 
                       levels = c("0", "1")) 
 
-plot(lasso_rocCurve, main="ROC curve for Lasso model on FSSTATUS", print.thres = TRUE, print.auc = TRUE)
+plot(FSSTATUS_lasso_rocCurve, main="ROC curve for Lasso model on FSSTATUS", print.thres = TRUE, print.auc = TRUE)
 
 
 ### --- Ridge Model ------------------------------------------------------------
@@ -126,11 +126,11 @@ test.df.preds <- test.df %>%
     ridge_pred = predict(ridge, x.test, type="response")[,1],
   )
 
-ridge_rocCurve <- roc(response = as.factor(test.df.preds$FSSTATUS),
+FSSTATUS_ridge_rocCurve <- roc(response = as.factor(test.df.preds$FSSTATUS),
                       predictor = test.df.preds$ridge_pred, 
                       levels = c("0", "1")) 
 
-plot(ridge_rocCurve, main="ROC curve for Ridge model on FSSTATUS",print.thres = TRUE, print.auc = TRUE)
+plot(FSSTATUS_ridge_rocCurve, main="ROC curve for Ridge model on FSSTATUS",print.thres = TRUE, print.auc = TRUE)
 
 # ---- CHOOSING OUR MODEL -----
 
@@ -212,7 +212,7 @@ rocCurve <- roc(response = test.df$FSSTATUS,
                 levels = c("0","1"))
 
 
-plot(rocCurve, print.thres = TRUE, print.auc = TRUE) 
+plot(FSSTATUS_rocCurve, print.thres = TRUE, print.auc = TRUE) 
 
 ######AGGREGATING AT PUMA LEVEL##########
 
@@ -237,6 +237,6 @@ write.csv(acs_data_predict_agg_FSSTATUS,"data/acs_pred_FSSTATUS.csv",row.names=F
 
 ### --- GRAPH THE ROC CURVES ------------
 par(mfrow=c(3,1))
-plot(lasso_rocCurve, main="ROC Curves for FSSTATUS: Household food security scale\nLasso model", print.thres = TRUE, print.auc = TRUE)
-plot(ridge_rocCurve, main="Ridge Model",print.thres = TRUE, print.auc = TRUE)
-plot(rocCurve, print.thres = TRUE, main="Random Forest", print.auc = TRUE) 
+plot(FSSTATUS_lasso_rocCurve, main="ROC Curves for FSSTATUS: Household food security scale\nLasso model", print.thres = TRUE, print.auc = TRUE)
+plot(FSSTATUS_ridge_rocCurve, main="Ridge Model",print.thres = TRUE, print.auc = TRUE)
+plot(FSSTATUS_rocCurve, print.thres = TRUE, main="Random Forest", print.auc = TRUE) 
