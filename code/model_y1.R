@@ -225,4 +225,4 @@ acs_data_predict_agg_FSSTATUS <- acs.preds %>%
   group_by(PUMA) %>% 
   summarise(meanstuff = weighted.mean(ridge_pred, weights = weights))
 
-
+write.csv(acs_data_predict_agg_FSSTATUS,"data/acs_pred_FSSTATUS.csv",row.names=FALSE)

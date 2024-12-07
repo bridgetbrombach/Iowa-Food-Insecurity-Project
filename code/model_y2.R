@@ -17,14 +17,14 @@ library(logistf)
 # First I will create a subset of the data that only includes the X variables
 
 cps_data_models <- cps_data %>% 
-  select(c(FSSKIPYR,
+  select(c(FSWROUTY,
            hhsize,education,hispanic,black,asian,married,female,elderly,kids,
            working,femhispanic,donutfamily,femblack,poverty,
            elmar,eled,elfem,elblack,elhispanic,elasian,workeduc,
            weight))
 
-# There are NA values in the FSSKIPYR column, so I will remove those
-cps_data_models <- cps_data_models %>% na.omit(cps_data_models$FSSKIPYR)
+# There are NA values in the FSWROUTY column, so I will remove those
+cps_data_models <- cps_data_models %>% na.omit(cps_data_models$FSWROUTY)
 
 # Splitting the data into train and testing data sets
 RNGkind(sample.kind="default")
@@ -34,10 +34,10 @@ train.df <- cps_data_models[train.idx,]
 test.df <- cps_data_models[-train.idx,]
 
 # Making test/train matrices
-x.train <- model.matrix(FSSKIPYR ~ hhsize+education+hispanic+black+asian+married+female+elderly+kids+
+x.train <- model.matrix(FSWROUTY ~ hhsize+education+hispanic+black+asian+married+female+elderly+kids+
                           working+femhispanic+donutfamily+femblack+poverty+
                           elmar+eled+elfem+elblack+elhispanic+elasian+workeduc, data = train.df)[,-1]
-x.test <- model.matrix(FSSKIPYR ~ hhsize+education+hispanic+black+asian+married+female+elderly+kids+
+x.test <- model.matrix(FSWROUTY ~ hhsize+education+hispanic+black+asian+married+female+elderly+kids+
                          working+femhispanic+donutfamily+femblack+poverty+
                          elmar+eled+elfem+elblack+elhispanic+elasian+workeduc, data = test.df)[,-1]
 
@@ -49,12 +49,12 @@ acs_data_predict <- acs_data %>%
 acs_data_predict <- as.matrix(acs_data_predict)
 
 # Create vectors for y variable
-y.train <- as.vector(train.df$FSSKIPYR)
-y.test <- as.vector(test.df$FSSKIPYR)
+y.train <- as.vector(train.df$FSWROUTY)
+y.test <- as.vector(test.df$FSWROUTY)
 
 # --- Logistic regression model ------------------------------------------------------------
 #this should be after random forest, using the variables it predicted there
-lr_mle <- glm(FSSKIPYR ~ .,
+lr_mle <- glm(FSWROUTY ~ .,
               data = train.df,
               weights = weight,
               family = binomial(link= "logit"))
@@ -89,11 +89,11 @@ test.df.preds <- test.df %>%
     lasso_pred = predict(lasso, x.test, type="response")[,1],
   )
 
-lasso_rocCurve <- roc(response = as.factor(test.df.preds$FSSKIPYR),
+lasso_rocCurve <- roc(response = as.factor(test.df.preds$FSWROUTY),
                       predictor = test.df.preds$lasso_pred, 
                       levels = c("0", "1")) 
 
-plot(lasso_rocCurve, main="ROC curve for Lasso model on FSSKIPYR", print.thres = TRUE, print.auc = TRUE)
+plot(lasso_rocCurve, main="ROC curve for Lasso model on FSWROUTY", print.thres = TRUE, print.auc = TRUE)
 
 
 ### --- Ridge Model ------------------------------------------------------------
@@ -126,11 +126,11 @@ test.df.preds <- test.df %>%
     ridge_pred = predict(ridge, x.test, type="response")[,1],
   )
 
-ridge_rocCurve <- roc(response = as.factor(test.df.preds$FSSKIPYR),
+ridge_rocCurve <- roc(response = as.factor(test.df.preds$FSWROUTY),
                       predictor = test.df.preds$ridge_pred, 
                       levels = c("0", "1")) 
 
-plot(ridge_rocCurve, main="ROC curve for Ridge model on FSSKIPYR",print.thres = TRUE, print.auc = TRUE)
+plot(ridge_rocCurve, main="ROC curve for Ridge model on FSWROUTY",print.thres = TRUE, print.auc = TRUE)
 
 
 ###########RANDOM FOREST##############
@@ -140,7 +140,7 @@ plot(ridge_rocCurve, main="ROC curve for Ridge model on FSSKIPYR",print.thres = 
 RNGkind(sample.kind = "default")
 
 #Fit a baseline forest 
-tempforest <- randomForest(as.factor(FSSKIPYR) ~ hhsize+education+femhispanic+femblack+
+tempforest <- randomForest(as.factor(FSWROUTY) ~ hhsize+education+femhispanic+femblack+
                              poverty+donutfamily+hispanic+married+female+elderly,
                            data=train.df,
                            ntree = 100,
@@ -158,7 +158,7 @@ keeps <- data.frame(m = rep(NA, length(mtry)),
 for(idx in 1:length(mtry)){
   print(paste0("Trying m = ", mtry[idx]))
   
-  tempforest <- randomForest(as.factor(FSSKIPYR) ~ hhsize+education+femhispanic+femblack+poverty+donutfamily+hispanic+married+female+
+  tempforest <- randomForest(as.factor(FSWROUTY) ~ hhsize+education+femhispanic+femblack+poverty+donutfamily+hispanic+married+female+
                                elderly, 
                              data = train.df,
                              ntree = 1000,
@@ -167,7 +167,7 @@ for(idx in 1:length(mtry)){
   
   keeps[idx, "m"] <- mtry[idx]
   
-  keeps[idx, "OOB_err_rate"] <- mean(predict(tempforest) != train.df$FSSKIPYR)
+  keeps[idx, "OOB_err_rate"] <- mean(predict(tempforest) != train.df$FSWROUTY)
 }
 
 ggplot(data = keeps) +
@@ -178,7 +178,7 @@ ggplot(data = keeps) +
 # 4 looks to be the optimal number the m that minimizes the 
 # OOB Error Rate
 
-finalforest <- randomForest(as.factor(FSSKIPYR) ~ hhsize+education+femhispanic+
+finalforest <- randomForest(as.factor(FSWROUTY) ~ hhsize+education+femhispanic+
                               femblack+poverty+donutfamily+hispanic+married+female+elderly, 
                             data = train.df,
                             ntree = 1000,
@@ -188,7 +188,7 @@ finalforest <- randomForest(as.factor(FSSKIPYR) ~ hhsize+education+femhispanic+
 
 pi_hat <- predict(finalforest, test.df, type = "prob")[,"1"]
 
-rocCurve <- roc(response = test.df$FSSKIPYR,
+rocCurve <- roc(response = test.df$FSWROUTY,
                 predictor = pi_hat,
                 levels = c("0","1"))
 
@@ -200,12 +200,13 @@ plot(rocCurve, print.thres = TRUE, print.auc = TRUE)
 ## Using Lasso to predict for ACS
 acs.preds <- acs_data %>% 
   mutate(
-    ridge_pred = predict(ridge, acs_data_predict, type="response"),
+    ridge_pred = predict(lasso, acs_data_predict, type="response"),
   )
 
-acs_data_predict_agg_FSSKIPYR <- acs.preds %>% 
+acs_data_predict_agg_FSWROUTY <- acs.preds %>% 
   filter(elderly >=1) %>% 
   group_by(PUMA) %>% 
-  summarise(meanstuff = weighted.mean(ridge_pred, weights = weights))
+  summarise(predictions = weighted.mean(ridge_pred, weights = weights))
 
+write.csv(acs_data_predict_agg_FSWROUTY,"data/acs_pred_FSWROUTY.csv",row.names=FALSE)
 

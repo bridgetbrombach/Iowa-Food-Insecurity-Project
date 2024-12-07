@@ -116,6 +116,7 @@ cps_data <- cps_data %>%
     FSFOODS = ifelse(FSFOODS > 1, 1, 0),
     FSSKIPYR = ifelse(FSSKIPYR > 1, 1, 0),
     FSWROUTY = ifelse(FSWROUTY > 1, 1, 0), #more missings
+    FSSKIPYRandFSWROUTY=ifelse(FSWROUTY==1|FSSKIPYR==1, 1, 0),
     FSBAL = ifelse(FSBAL > 1, 1, 0),
     FSRAWSCRA=ifelse(FSRAWSCRA > 1, 1, 0))
 cps_clean<-cps_data
