@@ -260,37 +260,20 @@ ggplot(data = vi) +
 # in poverty and if a household has kids are the 2 most important variables. 
 
 # Next we will figure out the direction these factors have on the probability that
-# someone will be food insecure
+# a household will be food insecure using our best model (Ridge)
 
-m1 <- glm(FSSTATUS ~ poverty+kids,
-  data = train.df, family = binomial(link="logit"))
-BIC(m1) #6893.443
-
-m2 <- glm(FSSTATUS ~ poverty+kids+black,
-  data = train.df, family = binomial(link="logit"))
-BIC(m2) #6849.742
-
-m3 <- glm(FSSTATUS ~ poverty+kids+black+married,
-  data = train.df, family = binomial(link="logit"))
-BIC(m3) #6597.054
-
-m4 <- glm(FSSTATUS ~ poverty+kids+black+married+female,
-  data = train.df, family = binomial(link="logit"))
-BIC(m4) #6599.288
-# The BIC got bigger, so we will use m3
-
-summary(m3)
-coef(m3)
+summary(ridge)
+coef(ridge)
 
 ### INTERPRETATIONS 
 # What happens when the household is in poverty?
-exp(1.4700544) #4.349472
-# The odds of a household being food insecure increase by about 435% if a household
+exp(0.955195852) #2.59918
+# The odds of a household being food insecure increase by about 259.9% if a household
 # is in poverty, holding all other variables constant. 
 
 # What happens if a household has kids?
-exp(0.3305875) #1.391786
-# The odds of a household being food insecure increase by about 139% if a household
+exp(0.125515603) #1.133733
+# The odds of a household being food insecure increase by about 113.4% if a household
 # has kids, holding all other variables constant. 
 
 

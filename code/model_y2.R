@@ -243,7 +243,7 @@ acs_data_predict_agg_FSWROUTY <- acs_data_predict_agg_FSWROUTY %>%
 write.csv(acs_data_predict_agg_FSWROUTY,"data/acs_pred_FSWROUTY.csv",row.names=FALSE)
 
 ### --- GRAPH THE ROC CURVES ---------------------------------------------------
-par(mfrow=c(1,1))
+par(mfrow=c(1,3))
 plot(FSWROUTY_lasso_rocCurve, main="Lasso model", print.thres = TRUE, print.auc = TRUE)
 plot(FSWROUTY_ridge_rocCurve, main="Ridge Model",print.thres = TRUE, print.auc = TRUE)
 plot(FSWROUTY_rocCurve, print.thres = TRUE, main="Random Forest", print.auc = TRUE) 
@@ -267,43 +267,23 @@ ggplot(data = vi) +
 # in poverty and household size are the 2 most important variables 
 
 # Next we will figure out the direction these factors have on the probability that
-# someone will be food insecure
+# a household will be worried that food would run out before able to afford more
+# using our best model (Ridge) 
 
-m1 <- glm(FSWROUTY ~ poverty+hhsize,
-  data = train.df, family = binomial(link="logit"))
-BIC(m1) #5584.815
-
-m2 <- glm(FSWROUTY ~ poverty+hhsize+black,
-  data = train.df, family = binomial(link="logit"))
-BIC(m2) #5548.153
-
-m3 <- glm(FSWROUTY ~ poverty+hhsize+black+hispanic,
-  data = train.df, family = binomial(link="logit"))
-BIC(m3) #5545.118
-
-m4 <- glm(FSWROUTY ~ poverty+hhsize+black+hispanic+kids,
-  data = train.df, family = binomial(link="logit"))
-BIC(m4) #5517.12
-
-m5 <- glm(FSWROUTY ~ poverty+hhsize+black+hispanic+kids+female,
-  data = train.df, family = binomial(link="logit"))
-BIC(m5) #5519.606
-# The BIC went up, so we will use m4
-
-summary(m4)
-coef(m4)
+summary(ridge)
+coef(ridge)
 
 ## INTERPRETATIONS
 # What happens if a household is in poverty?
-exp(0.77092816) #2.161772
-# The odds of a household a household will be worried that food would run out
-# before able to afford more during past year increase by about 216% if a household
+exp(0.3522632244) #1.422283
+# The odds a household will be worried that food would run out
+# before able to afford more increase by about 142% if a household
 # is in poverty, holding all other variables constant.
 
 # What happens when a household increases by 1
-exp(-0.16598604) #0.8470581
-# For every additional person in the household, the odds of a household a household
-# will be worried that food would run out before able to afford more during past 
-# year increase by about 85%
+exp(-0.0189948538) #0.9811844
+# For every additional person in the household, the odds of a household a 
+# household will be worried that food would run out before able to afford more 
+# increase by about 98%
 
 
