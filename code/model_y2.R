@@ -243,7 +243,7 @@ acs_data_predict_agg_FSWROUTY <- acs_data_predict_agg_FSWROUTY %>%
 write.csv(acs_data_predict_agg_FSWROUTY,"data/acs_pred_FSWROUTY.csv",row.names=FALSE)
 
 ### --- GRAPH THE ROC CURVES ---------------------------------------------------
-par(mfrow=c(1,3))
+par(mfrow=c(1,1))
 plot(FSWROUTY_lasso_rocCurve, main="Lasso model", print.thres = TRUE, print.auc = TRUE)
 plot(FSWROUTY_ridge_rocCurve, main="Ridge Model",print.thres = TRUE, print.auc = TRUE)
 plot(FSWROUTY_rocCurve, print.thres = TRUE, main="Random Forest", print.auc = TRUE) 

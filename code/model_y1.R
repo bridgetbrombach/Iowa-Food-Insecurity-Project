@@ -238,7 +238,7 @@ write.csv(acs_data_predict_agg_FSSTATUS,"data/acs_pred_FSSTATUS.csv",row.names=F
 
 ### --- GRAPH THE ROC CURVES --------------------------------------------------------------------------------
 par(mfrow=c(1,1))
-plot(FSSTATUS_lasso_rocCurve, main="ROC Curves for FSSTATUS: Household food security scale\nLasso model", print.thres = TRUE, print.auc = TRUE)
+plot(FSSTATUS_lasso_rocCurve, main="Lasso model", print.thres = TRUE, print.auc = TRUE)
 plot(FSSTATUS_ridge_rocCurve, main="Ridge Model",print.thres = TRUE, print.auc = TRUE)
 plot(FSSTATUS_rocCurve, print.thres = TRUE, main="Random Forest", print.auc = TRUE) 
 
