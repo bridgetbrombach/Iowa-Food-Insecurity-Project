@@ -271,7 +271,7 @@ ggplot() +
   labs(x = "1 - Specificity", y = "Sensitivity", color = "Model") +
   theme_minimal()
 
-### --- Variance Importance Plot ----------------------------------------------------------------------------
+### --- Variable Importance Plot -----------------------------------------------
 par(mfrow=c(1,1))
 varImpPlot(finalforest, type=1)
 vi <- as.data.frame(varImpPlot(finalforest, type=1))

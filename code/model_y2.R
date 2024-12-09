@@ -279,7 +279,7 @@ ggplot() +
 #Here, it's very hard to see the difference between the two. 
 #So, we decided that we need to show the more specific plots for the presentation
 
-### --- Variance Importance Plot ------------------------------------------------
+### --- Variable Importance Plot ------------------------------------------------
 par(mfrow=c(1,1))
 varImpPlot(finalforest, type=1)
 vi <- as.data.frame(varImpPlot(finalforest, type=1))
