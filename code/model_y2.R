@@ -244,9 +244,40 @@ write.csv(acs_data_predict_agg_FSWROUTY,"data/acs_pred_FSWROUTY.csv",row.names=F
 
 ### --- GRAPH THE ROC CURVES ---------------------------------------------------
 par(mfrow=c(1,3))
-plot(FSWROUTY_lasso_rocCurve, main="Lasso model", print.thres = TRUE, print.auc = TRUE)
-plot(FSWROUTY_ridge_rocCurve, main="Ridge Model",print.thres = TRUE, print.auc = TRUE)
-plot(FSWROUTY_rocCurve, print.thres = TRUE, main="Random Forest", print.auc = TRUE) 
+plot(FSWROUTY_lasso_rocCurve, main="Lasso model", print.thres = FALSE, print.auc = FALSE)
+plot(FSWROUTY_ridge_rocCurve, main="Ridge Model",print.thres = FALSE, print.auc = FALSE)
+plot(FSWROUTY_rocCurve, print.thres = FALSE, main="Random Forest", print.auc = FALSE)
+
+#make data frame of lasso ROC info
+lasso_data <- data.frame(
+  Model = "Lasso",
+  Specificity = FSWROUTY_lasso_rocCurve$specificities,
+  Sensitivity = FSWROUTY_lasso_rocCurve$sensitivities,
+  AUC = FSWROUTY_lasso_rocCurve$auc %>% as.numeric
+)
+#make data frame of ridge ROC info
+ridge_data <- data.frame(
+  Model = "Ridge",
+  Specificity = FSWROUTY_ridge_rocCurve$specificities,
+  Sensitivity = FSWROUTY_ridge_rocCurve$sensitivities,
+  AUC = FSWROUTY_ridge_rocCurve$auc%>% as.numeric
+)
+
+# Combine all the data frames
+roc_data <- rbind(lasso_data, ridge_data)
+
+# Plot the data
+ggplot() +
+  geom_line(aes(x = 1 - Specificity, y = Sensitivity, color = Model),data = roc_data) +
+  geom_text(data = roc_data %>% group_by(Model) %>% slice(1), 
+            aes(x = 0.75, y = c(0.75,0.70), colour = Model,
+                label = paste0(Model, " AUC = ", round(AUC, 3)))) +
+  scale_colour_brewer(palette = "Dark2") +
+  labs(x = "1 - Specificity", y = "Sensitivity", color = "Model") +
+  theme_minimal()
+
+#Here, it's very hard to see the difference between the two. 
+#So, we decided that we need to show the more specific plots for the presentation
 
 ### --- Variance Importance Plot ------------------------------------------------
 par(mfrow=c(1,1))

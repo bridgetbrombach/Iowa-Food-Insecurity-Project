@@ -13,7 +13,7 @@ library(rpart)
 library(rpart.plot)
 library(logistf)
 
-## --- DATA PREP (same for all four models) ---
+## --- DATA PREP (same for all four models) -------
 # First I will create a subset of the data that only includes the X variables
 
 cps_data_models <- cps_data %>% 
@@ -60,7 +60,7 @@ lr_mle <- glm(FSSTATUS ~ .,
               family = binomial(link= "logit"))
 
 ### --- Lasso Model ------------------------------------------------------------
-## --- Fitting the model ---
+## --- Fitting the model -------
 
 # 1. Use cross validation to fit (LOTS OF) lasso regressions
 lr_lasso_cv <- cv.glmnet(x.train, 
@@ -97,7 +97,8 @@ plot(FSSTATUS_lasso_rocCurve, main="ROC curve for Lasso model on FSSTATUS", prin
 
 
 ### --- Ridge Model ------------------------------------------------------------
-## --- Fitting the model ---
+## --- Fitting the model (????) -------
+#??????? was something supposed to be here????
 
 # ---- Use cross validation to fit ridge regressions -----
 lr_ridge_cv <- cv.glmnet(x.train, 
@@ -228,7 +229,7 @@ acs_data_predict_agg_FSSTATUS <- acs.preds %>%
   group_by(PUMA) %>% 
   summarise(proportion_of_population = weighted.mean(ridge_pred, weights = weights))
 
-total_elderly <- read.csv("data/iowa_seniors_by_puma.csv")
+total_elderly <- read.csv("data/total_iowa_seniors_by_puma.csv")
 
 acs_data_predict_agg_FSSTATUS <- acs_data_predict_agg_FSSTATUS %>%
   mutate(count_of_seniors = total_elderly$senior_population*proportion_of_population,
@@ -241,6 +242,34 @@ par(mfrow=c(1,1))
 plot(FSSTATUS_lasso_rocCurve, main="Lasso model", print.thres = TRUE, print.auc = TRUE)
 plot(FSSTATUS_ridge_rocCurve, main="Ridge Model",print.thres = TRUE, print.auc = TRUE)
 plot(FSSTATUS_rocCurve, print.thres = TRUE, main="Random Forest", print.auc = TRUE) 
+
+#make data frame of lasso ROC info
+lasso_data <- data.frame(
+  Model = "Lasso",
+  Specificity = FSSTATUS_lasso_rocCurve$specificities,
+  Sensitivity = FSSTATUS_lasso_rocCurve$sensitivities,
+  AUC = FSSTATUS_lasso_rocCurve$auc %>% as.numeric
+)
+#make data frame of ridge ROC info
+ridge_data <- data.frame(
+  Model = "Ridge",
+  Specificity = FSSTATUS_ridge_rocCurve$specificities,
+  Sensitivity = FSSTATUS_ridge_rocCurve$sensitivities,
+  AUC = FSSTATUS_ridge_rocCurve$auc%>% as.numeric
+)
+
+# Combine all the data frames
+roc_data <- rbind(lasso_data, ridge_data)
+
+# Plot the data
+ggplot() +
+  geom_line(aes(x = 1 - Specificity, y = Sensitivity, color = Model),data = roc_data) +
+  geom_text(data = roc_data %>% group_by(Model) %>% slice(1), 
+            aes(x = 0.75, y = c(0.75,0.70), colour = Model,
+                label = paste0(Model, " AUC = ", round(AUC, 3)))) +
+  scale_colour_brewer(palette = "Dark2") +
+  labs(x = "1 - Specificity", y = "Sensitivity", color = "Model") +
+  theme_minimal()
 
 ### --- Variance Importance Plot ----------------------------------------------------------------------------
 par(mfrow=c(1,1))
