@@ -202,8 +202,9 @@ ggplot(data = keeps) +
 # 4 looks to be the optimal number the m that minimizes the 
 # OOB Error Rate
 
-finalforest <- randomForest(as.factor(FSWROUTY) ~ hhsize+education+femhispanic+
-                              femblack+poverty+donutfamily+hispanic+married+female+elderly, 
+finalforest <- randomForest(as.factor(FSWROUTY) ~ hhsize+education+hispanic+black
+  +asian+married+female+elderly+kids+working+femhispanic+donutfamily+femblack+poverty+
+    elmar+eled+elfem+elblack+elhispanic+elasian+workeduc, 
                             data = train.df,
                             ntree = 1000,
                             mtry = 4,  #chosen from tuning
@@ -241,7 +242,63 @@ acs_data_predict_agg_FSWROUTY <- acs_data_predict_agg_FSWROUTY %>%
 write.csv(acs_data_predict_agg_FSWROUTY,"data/acs_pred_FSWROUTY.csv",row.names=FALSE)
 
 ### --- GRAPH THE ROC CURVES ------------
-par(mfrow=c(3,1))
-plot(FSWROUTY_lasso_rocCurve, main="ROC Curves for FSBAL: Could not afford to eat balanced meals in the past year\nLasso model", print.thres = TRUE, print.auc = TRUE)
+par(mfrow=c(1,3))
+plot(FSWROUTY_lasso_rocCurve, main="Lasso model", print.thres = TRUE, print.auc = TRUE)
 plot(FSWROUTY_ridge_rocCurve, main="Ridge Model",print.thres = TRUE, print.auc = TRUE)
 plot(FSWROUTY_rocCurve, print.thres = TRUE, main="Random Forest", print.auc = TRUE) 
+
+### --- Variance Importance Plot ----
+par(mfrow=c(1,1))
+varImpPlot(finalforest, type=1)
+vi <- as.data.frame(varImpPlot(finalforest, type=1))
+vi$Variable <- rownames(vi)
+
+ggplot(data = vi) +
+  geom_bar(aes(x=reorder(Variable,MeanDecreaseAccuracy),
+    weight=MeanDecreaseAccuracy), position="identity") +
+  coord_flip() + 
+  labs(x="Variable Name", y="Mean Decrease Accuracy") + 
+  ggtitle("Variable Importance Plot for Variable FSWROUTY:\nWorried that food would run out before able to afford more during past year")
+
+# Interpretations
+# In predicting whether or not a household will be worried that food would run out
+# before able to afford more during past year, if a household is 
+# in poverty and household size are the 2 most important variables 
+
+# Next we will figure out the direction these factors have on the probability that
+# someone will be food insecure
+
+m1 <- glm(FSWROUTY ~ poverty+hhsize,
+  data = train.df, family = binomial(link="logit"))
+BIC(m1) #5584.815
+
+m2 <- glm(FSWROUTY ~ poverty+hhsize+black,
+  data = train.df, family = binomial(link="logit"))
+BIC(m2) #5548.153
+
+m3 <- glm(FSWROUTY ~ poverty+hhsize+black+hispanic,
+  data = train.df, family = binomial(link="logit"))
+BIC(m3) #5545.118
+
+m4 <- glm(FSWROUTY ~ poverty+hhsize+black+hispanic+kids,
+  data = train.df, family = binomial(link="logit"))
+BIC(m4) #5517.12
+
+m5 <- glm(FSWROUTY ~ poverty+hhsize+black+hispanic+kids+female,
+  data = train.df, family = binomial(link="logit"))
+BIC(m5) #5519.606
+# The BIC went up, so we will use m4
+
+summary(m4)
+coef(m4)
+
+## INTERPRETATIONS
+# What happens if a household is in poverty?
+exp(0.77092816) #2.161772
+# The odds of a household a household will be worried that food would run out
+# before able to afford more during past year increase by about 435% if a household
+# is in poverty, holding all other variables constant.
+
+# What happens 
+
+

@@ -40,3 +40,29 @@ tree <- rpart(FSSTATUS ~ hhsize+education+hispanic+black+asian+married+female+el
                method = 'class')
 
 rpart.plot(tree)
+
+
+### --- Random Forest Fitting ----
+FSSTATUSvarImpPlotForest <- randomForest(as.factor(FSSTATUS) ~ hhsize+education+hispanic+black
+  +asian+married+female+elderly+kids+working+femhispanic+donutfamily+femblack+poverty+
+    elmar+eled+elfem+elblack+elhispanic+elasian+workeduc, 
+  data = train.df,
+  ntree = 1000,
+  mtry = 4,  #chosen from tuning
+  weights = train.df$weight, 
+  importance = TRUE)
+
+FSWROUTYvarImpPlotForest <- randomForest(as.factor(FSWROUTY) ~ hhsize+education+hispanic+black
+  +asian+married+female+elderly+kids+working+femhispanic+donutfamily+femblack+poverty+
+    elmar+eled+elfem+elblack+elhispanic+elasian+workeduc, 
+  data = train.df,
+  ntree = 1000,
+  mtry = 4,  #chosen from tuning
+  weights = train.df$weight, 
+  importance = TRUE)
+
+### --- FSSTATUS Variable Importance Plot ----
+varImpPlot(FSSTATUSvarImpPlotForest, type=1)
+FSSTATUSvi <- as.data.frame(varImpPlot(FSSTATUSvarImpPlotForest, type=1))
+FSSTATUSvi$variable <- rownames(FSSTATUSvi)
+

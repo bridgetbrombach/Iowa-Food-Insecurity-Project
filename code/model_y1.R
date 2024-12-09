@@ -197,8 +197,9 @@ ggplot(data = keeps) +
 # 4 looks to be the optimal number the m that minimizes the 
 # OOB Error Rate
 
-finalforest <- randomForest(as.factor(FSSTATUS) ~ hhsize+education+femhispanic+
-                              femblack+poverty+donutfamily+hispanic+married+female+elderly, 
+finalforest <- randomForest(as.factor(FSSTATUS) ~ hhsize+education+hispanic+black
+  +asian+married+female+elderly+kids+working+femhispanic+donutfamily+femblack+poverty+
+    elmar+eled+elfem+elblack+elhispanic+elasian+workeduc, 
                             data = train.df,
                             ntree = 1000,
                             mtry = 4,  #chosen from tuning
@@ -207,7 +208,7 @@ finalforest <- randomForest(as.factor(FSSTATUS) ~ hhsize+education+femhispanic+
 
 pi_hat <- predict(finalforest, test.df, type = "prob")[,"1"]
 
-rocCurve <- roc(response = test.df$FSSTATUS,
+FSSTATUS_rocCurve <- roc(response = test.df$FSSTATUS,
                 predictor = pi_hat,
                 levels = c("0","1"))
 
@@ -235,8 +236,68 @@ acs_data_predict_agg_FSSTATUS <- acs_data_predict_agg_FSSTATUS %>%
 
 write.csv(acs_data_predict_agg_FSSTATUS,"data/acs_pred_FSSTATUS.csv",row.names=FALSE)
 
-### --- GRAPH THE ROC CURVES ------------
-par(mfrow=c(3,1))
+### --- GRAPH THE ROC CURVES --------------------------------------------------------------------------------
+par(mfrow=c(1,1))
 plot(FSSTATUS_lasso_rocCurve, main="ROC Curves for FSSTATUS: Household food security scale\nLasso model", print.thres = TRUE, print.auc = TRUE)
 plot(FSSTATUS_ridge_rocCurve, main="Ridge Model",print.thres = TRUE, print.auc = TRUE)
 plot(FSSTATUS_rocCurve, print.thres = TRUE, main="Random Forest", print.auc = TRUE) 
+
+### --- Variance Importance Plot ----------------------------------------------------------------------------
+par(mfrow=c(1,1))
+varImpPlot(finalforest, type=1)
+vi <- as.data.frame(varImpPlot(finalforest, type=1))
+vi$Variable <- rownames(vi)
+
+ggplot(data = vi) +
+  geom_bar(aes(x=reorder(Variable,MeanDecreaseAccuracy),
+    weight=MeanDecreaseAccuracy), position="identity") +
+  coord_flip() + 
+  labs(x="Variable Name", y="Mean Decrease Accuracy") + 
+  ggtitle("Variable Importance Plot for Variable\nFSSTATUS: Worried that food would run out before able to afford more during past year")
+
+# Interpretations
+# In predicting whether or not a household will be food insecure, if a household is 
+# in poverty and if a household has kids are the 2 most important variables. 
+
+# Next we will figure out the direction these factors have on the probability that
+# someone will be food insecure
+
+m1 <- glm(FSSTATUS ~ poverty+kids,
+  data = train.df, family = binomial(link="logit"))
+BIC(m1) #6893.443
+
+m2 <- glm(FSSTATUS ~ poverty+kids+black,
+  data = train.df, family = binomial(link="logit"))
+BIC(m2) #6849.742
+
+m3 <- glm(FSSTATUS ~ poverty+kids+black+married,
+  data = train.df, family = binomial(link="logit"))
+BIC(m3) #6597.054
+
+m4 <- glm(FSSTATUS ~ poverty+kids+black+married+female,
+  data = train.df, family = binomial(link="logit"))
+BIC(m4) #6599.288
+# The BIC got bigger, so we will use m3
+
+summary(m3)
+coef(m3)
+
+### INTERPRETATIONS 
+# What happens when the household is in poverty?
+exp(1.4700544) #4.349472
+# The odds of a household being food insecure increase by about 435% if a household
+# is in poverty, holding all other variables constant. 
+
+# What happens if a household has kids?
+exp(0.3305875) #1.391786
+# The odds of a household being food insecure increase by about 139% if a household
+# has kids, holding all other variables constant. 
+
+
+
+
+
+
+
+
+
