@@ -135,13 +135,14 @@ plot(FSWROUTY_ridge_rocCurve, main="ROC curve for Ridge model on FSWROUTY",print
 # --- CHOOSING THE MODEL -----
 
 # Both Lasso and Ridge have the same AUC: .693.
-# Where they differ is the pi* - Lasso has .422 and Ridge has 0.369
-
-# We chose Ridge because it's more important for us to have a higher sensitivity
+# it's more important for us to have a higher sensitivity - true positives.
 # It's more important that Wesley Life correctly predict food insecurity, 
 # than for them to correctly predict when a household is NOT food insecure.
 
-# ---- INTERPRETATIONS FOR THE LASSO MODEL ----
+# We chose Ridge because it's specificity is 0.68 
+# while for Lasso, the specificy is 0.546.
+
+# ---- INTERPRETATIONS FOR THE Ridge MODEL ----
 
 # the area under the curve is .693.
 
