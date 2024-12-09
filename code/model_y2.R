@@ -296,9 +296,13 @@ coef(m4)
 # What happens if a household is in poverty?
 exp(0.77092816) #2.161772
 # The odds of a household a household will be worried that food would run out
-# before able to afford more during past year increase by about 435% if a household
+# before able to afford more during past year increase by about 216% if a household
 # is in poverty, holding all other variables constant.
 
-# What happens 
+# What happens when a household increases by 1
+exp(-0.16598604) #0.8470581
+# For every additional person in the household, the odds of a household a household
+# will be worried that food would run out before able to afford more during past 
+# year increase by about 85%
 
 

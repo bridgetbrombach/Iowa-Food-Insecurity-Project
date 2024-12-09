@@ -253,7 +253,7 @@ ggplot(data = vi) +
     weight=MeanDecreaseAccuracy), position="identity") +
   coord_flip() + 
   labs(x="Variable Name", y="Mean Decrease Accuracy") + 
-  ggtitle("Variable Importance Plot for Variable\nFSSTATUS: Worried that food would run out before able to afford more during past year")
+  ggtitle("Variable Importance Plot for Variable\nFSSTATUS: Household Food Insecurity Index")
 
 # Interpretations
 # In predicting whether or not a household will be food insecure, if a household is 
