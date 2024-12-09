@@ -307,14 +307,18 @@ coef(ridge)
 ## INTERPRETATIONS
 # What happens if a household is in poverty?
 exp(0.3522632244) #1.422283
-# The odds a household will be worried that food would run out
-# before able to afford more increase by about 142% if a household
-# is in poverty, holding all other variables constant.
+# The odds of a household being food insecure increase by about 1.42 times if 
+# a household is in poverty over one that isn't, holding all other variables constant. 
+# 
+# In other words, it could be smart to target households that are in poverty for 
+# meals on wheels 
 
 # What happens when a household size increases by 1
 exp(-0.0189948538) #0.9811844
-# For every additional person in the household, the odds of a household a 
-# household will be worried that food would run out before able to afford more 
-# increase by about 98%
+# The odds of a household being food insecure change by about .98 times for each
+# additional person in the household, holding all other variables constant. 
+# 
+# In other words, the odds decrease by about 2% for each additional person in the
+# household. 
 
 
