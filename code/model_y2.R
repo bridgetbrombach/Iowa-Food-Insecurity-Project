@@ -280,7 +280,7 @@ exp(0.3522632244) #1.422283
 # before able to afford more increase by about 142% if a household
 # is in poverty, holding all other variables constant.
 
-# What happens when a household increases by 1
+# What happens when a household size increases by 1
 exp(-0.0189948538) #0.9811844
 # For every additional person in the household, the odds of a household a 
 # household will be worried that food would run out before able to afford more 
