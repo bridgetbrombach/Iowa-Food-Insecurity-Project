@@ -1,173 +1,197 @@
-#Cleaned Variable Definitions(CPS):
-##IPUMS CPS Link: https://cps.ipums.org/cps-action/variables
+# Project Documentation
 
-**SEX**: Is this person a female? 1 if yes, 0 if no
+## Overview
 
-**CHILD**: If age < 18, 1 if yes, 0 if no
+This project involves predicting food insecurity proportions and counts for senior populations by PUMA (Public Use Microdata Area) using various machine learning models, including ridge regression, lasso regression, and random forest. The ridge regression model was ultimately chosen based on its superior performance evaluated through ROC curves and AUC. The project also includes the visualization of predictions using both leaflet and ggplot choropleth maps.
 
-**ELDERLY**: If age > 59 (given 60 cutoff by Wesely Life) 1 if yes, 0 if no
+## Features and Objectives
 
-**BLACK**: Race code 200 from RACE IPUMS CPS Website, 1 if yes, 0 if no
+- **Data Preparation**: Prepare and clean the input datasets.
+- **Machine Learning Models**: Fit and evaluate ridge regression, lasso regression, and random forest models for predicting food insecurity.
+- **Visualization**: Create interactive maps and static choropleth maps of food insecurity proportions and counts.
+- **Dynamic Customizations**: Add features like titles and captions to visualizations.
+- **Data Aggregation**: Aggregate additional dataset, ACS (American Community Survey) data, for predictions.
 
-**HISPANIC**: If HISPAN code from IPUMS > 0, 1 if yes, 0 if no
+## Setup Instructions
 
-**EDUC**: IF EDUC code is one of the following:
-                      91 (Associate's degree, occupational/vocational program), 
-                      92 (Associate's degree, academic program), 
-                      111 (Bachelor's degree), 
-                      123 (Master's degree),
-                      124 (Professional school degree)
-                          ("Professional school programs help prepare students
-                          for careers in specific fields. Examples include medical, 
-                          law, pharmacy, business, library, and social work schools. 
-                          The length of these programs vary. Professional degrees 
-                          are often required by law before an individual can 
-                          begin working in a particular occupation.")
-                          (https://sas.uaa.uw.edu/husky-experience/know-the-world/considering-graduate-or-professional-school/#:~:text=Professional%20school%20programs%20help%20prepare,working%20in%20a%20particular%20occupation.), 
-                      125 (Doctorate degree)
-            1 if yes, 0 if no
-          
-          In other words, this is looking whether or not a person has at least
-          an associates degree
-      
+### Prerequisites
 
-**EMP**: If EMPSTAT (Employment Status) code is 1,10,12
-        
-        ----Levels-----
-        1: Armed Forces
-        10: Employed (currently working)
-        12: Employed (has job, not at work last week)
-        
-        Essentially, if a person is employed 1, if not 0
+Ensure the following R libraries are installed:
 
-**MARRIED**: MARST (Marital Status) code is 1 or 2
-          1: Married, spouse present
-          2: Married, spouse absent
-          
-**DIFFANY** (do not use in model):  Unable to be used in modeling as it is not 
-            used in APS data
+```r
+install.packages(c('tidyverse', 'pROC', 'glmnet', 'lubridate',
+                   'randomForest', 'ggplot2', 'RColorBrewer',
+                   'rpart', 'rpart.plot', 'logistf', 'leaflet',
+                   'htmlwidgets'))
+```
 
-**COUNTY**(may not be needed (all of midwest used for CPS but only Iowa counties 
-          for ACS)):
-        "COUNTY is a five-digit numeric variable. The first two digits give the 
-        FIPS state code; the last three digits give the FIPS county code. 
-        For a list of counties identified in each state, follow the following 
-        links for the appropriate years:"
-        https://cps.ipums.org/cps-action/variables/COUNTY#codes_section
-        **00000 = Not Identified
-        
-**weight**: Household weight, Basic Monthly [preselected] (to address uneven 
-            sampling)
-        
-**hhsize**: Household size (number of people in household)
-            this is calculated based on the # of rows with the same CPSID
+### Data
+
+Food insecurity data should be provided in CSV format. Additional demographic data for mapping, such as senior population counts, should also be available in CSV format.
+
+Additionally, ACS (American Community Survey) data should be available in sasbdat format to supplement the predictions.
+
+### File Structure
+
+```
+project-folder/
+|-- data/
+|   |-- cps_00007.csv
+|   |-- cps_data.csv
+|   |-- total_iowa_seniors_by_puma.csv
+|   |-- spm_pu_2022.sas7bdat
+|   |-- acs_pred_FSSTATUS.csv
+|   |-- acs_pred_FSWROUTY.csv
+|   |-- acs_pred_FSSTATUS_extreme.csv
+|   |-- acs_pred_FSWROUTY_extreme.csv
+|-- scripts/
+|   |-- clean_acs.R
+|   |-- clean_cps.R
+|   |-- model_y1.R
+|   |-- model_y2.R
+|   |-- FSSTATUS_extreme_model.R
+|   |-- FSSTATUS_Count_Map.R
+|   |-- FSSTATUS_Count_Map.R
+|   |-- FSSTATUS_Proportion_Map.R
+|   |-- FSSTATUS_extreme_count_Map.R
+|   |-- FSSTATUS_extreme_proportion_Map.R
+|   |-- FSWROUTY_extreme_model.R
+|   |-- FSWROUTY_Count_Map.R
+|   |-- FSWROUTY_Count_Map.R
+|   |-- FSWROUTY_Proportion_Map.R
+|   |-- FSWROUTY_extreme_count_Map.R
+|   |-- FSWROUTY_extreme_proportion_Map.R
+|   |-- Leaflet_FSWROUTY_Map_Proportions.R
+|   |-- Leaflet_FSWROUTY_Map_Count.R
+|-- outputs/
+|   |-- FSSTATUS_Count_Map.pdf
+|   |-- FSSTATUS_Proportion_Map.pdf
+|   |-- FSSTATUS_extreme_Count_Map.pdf
+|   |-- FSSTATUS_extreme_Proportion_Map.pdf
+|-- README.md
+```
+
+## Implementation
+
+### Data Preparation
+
+1. **Food Insecurity Data**: Load the food insecurity data using `read.csv`.
+2. **ACS Data**: Load ACS data using `read_sas`. The ACS data will be used as additional demographic features for predicting food insecurity.
+3. **Data Cleaning**: Use `dplyr` for data cleaning and selecting relevant columns from both datasets.
+4. **Missing Values**: Remove missing values in both datasets.
+5. **Data Merging**: Merge the food insecurity and ACS datasets based on `PUMA`.
+6. **Data Splitting**: Split the combined dataset into training and testing subsets.
+
+### Aggregating ACS Data
 
 
-##Options for Y Variables (measures of hunger)
 
-**FXTOTXPNC**: Indicates the total amount the entire household spent on food 
-                last week.
+To aggregate the ACS data for prediction, the following steps can be followed:
 
-**FSTOTXPNC_perper**: Indicates the total amount the household spent on food last 
-                        week per person.  (Calculated using FSTOTPNC/hhsize)
-                
-                
-**FSSTATUS**: Household food security scale
+1. **Group by PUMA**: The ACS data can be grouped by PUMA to align with the food insecurity data..
+4. **Feature Engineering**: Make sure everything that is present in CPS is also in ACS.
 
-                ----Levels----
-                01: Food Secure
-                02: Low food secure
-                03: Very Low Food Secure
-            
-            If food status > 1, then 1, if not, 0
-            
-            In other words, if a family **is** food secure, 0, if **not** food 
-            secure 1
-            
-**FSSTATUSMD**: Detailed Household food security scale, 30-day
-                
-                ------Levels-------
-                01: High Food Security
-                02: Marginal Food Security
-                03: Low Food security
-                04: Very Low Food Security
-                
-                If status > 1, cell gets a 1, 0 otherwise
-                
-                In other words, if a family is High Food Security, they get a 0,
-                if family is anything but High Food Security, they get a 1. 
-                
-                "Households are classified as high food secure if they report no food 
-                insecure conditions than three food insecure conditions in the past 30 days. 
-                Households with incomes greater than 185% of the poverty line are asked two
-                screening questions about food insecurity and if they report no instances of
-                food insecurity are also categorized as high food secure. Households
-                classified with marginal food security are those reporting one or 
-                two food insecure conditions."
+### Model Fitting
 
-                "Households without children are classified as low food security if they 
-                report between 3-5 food insecure conditions and as very low food insecure 
-                if they report 6 or more food insecure conditions. Households with 
-                children are classified as low food insecure if they report 3-7 food 
-                insecure conditions, and very low food insecure if they report 8 
-                or more food insecure conditions in the past 30 days." (IPUMS)
-                
-                
-**FSFOODS**: Indicates whether the household had enough to eat or enough of the 
-            kinds of foods they wanted to eat in the past twelve months.
-            
-            Levels:
-            01: Enough of the kinds of food we want to eat
-            02: Enough but not always the kinds of food we want to eat
-            03: Sometimes not enough to eat
-            04: Often not enough to eat
-            96: Refused
-            97: Don't Know
-            
-            If level is > 1, then cell gets 0, 1 otherwise
-            
-            In other words, if the household has anything but "Enough of the 
-            Kinds of food we want to eat", they get a 1 (classified as an 
-            indication food insecurity), otherwise, 0
-            
-**FSWROUTY**: Indicates if, in the past year, the household was worried that 
-              they would run out of food and not be able to afford more.
-              
-              ------Levels------
-              01: Never True
-              02: Sometimes True
-              03: Often True
-              
-             If level > 1, then cell gets 1, otherwise 0
-             
-              In other words, if the household responds anything except "Never 
-              True", this is an indication of food insecurity and given a 1.
-              
-**FSBAL**: Indicates whether or not the respondent(s) could not afford to eat 
-            balanced meals at any time in the last 12 months.
-            
-            -----Levels-----
-            01: Never True
-            02: Sometimes True
-            03: Often True
-            
-            If level > 1, then cell gets 1, otherwise 0
-              
-            In other words, if the household responds anything excpet "Never True",
-            this is an indication of food insecurity and given a 1.
-            
-**FSRAWSCRA**: reports the total number of affirmative answers the household 
-                provided to the 10 item household/adult food security 
-                questionnaire. This raw score is used to determine the food 
-                security of the adults in a household in the past year (FSSTATUS).
-                /-----Levels----
-                00: No Affirmative Responses or Did not Pass Initial Screen
-                01: 1
-                02: 2
-                .
-                .
-                .
-                09: 9
-                10: 10
-                
-              
+#### Ridge Regression
+
+- Use `glmnet` for model fitting with cross-validation.
+- Extract the optimal lambda value and fit the final model.
+- Evaluate model performance using the `pROC` package.
+
+#### Other Models
+
+- **Lasso Regression**: Fit and evaluate using `glmnet` with `alpha = 1`.
+- **Random Forest**: Fit and evaluate using the `randomForest` package.
+
+The ridge regression model was selected for final predictions based on the highest AUC and best ROC curve performance.
+
+### Prediction Aggregation
+
+1. Apply the trained model to ACS Data.
+2. Group predictions by PUMA.
+3. Summarize results using weighted means to calculate:
+   - Proportion of food insecurity.
+4. Find counts by multiplying count_seniors from "total_iowa_seniors_by_puma.csv" by predicted proprotion
+
+### Visualization
+
+#### Leaflet Maps
+Use "tigris"" package to get PUMA shapefule
+
+```r
+iowa_pumas <- tigris::pumas(state = "IA", year = 2022, class = "sf")
+```
+
+Use `leaflet` to create interactive maps for visualizing:
+- Predicted food insecurity proportions by PUMA.
+- Predicted counts of food-insecure seniors by PUMA.
+
+#### GGPlot Choropleth Maps
+
+Use `ggplot2` for static choropleth maps of:
+- Predicted food insecurity proportions.
+- Predicted food-insecure senior counts.
+
+#### Adding Titles and Captions
+
+- Use `onRender` from `htmlwidgets` to add a centered title to the leaflet map.
+- Use `ggtitle` for adding titles to ggplot visualizations.
+
+**Example Code Snippet**:
+
+```r
+# Add a title to a leaflet map
+map <- leaflet() %>%
+  addTiles() %>%
+  onRender('
+    var title = document.createElement("div");
+    title.innerHTML = "<h2 style=\\"text-align:center; font-size: 24px; color: black;\\">Food Insecurity by PUMA</h2>";
+    title.style.position = "absolute";
+    title.style.top = "10px";
+    title.style.left = "50%";
+    title.style.transform = "translateX(-50%)";
+    title.style.zIndex = "1000";
+    document.body.appendChild(title);
+  ')
+
+# Create a choropleth map with ggplot
+choropleth <- ggplot(data = food_insecurity_data, aes(fill = proportion_of_population, geometry = geometry)) +
+  geom_sf() +
+  scale_fill_viridis_c() +
+  ggtitle("Predicted Food Insecurity Proportion by PUMA") +
+  theme_minimal()
+```
+
+## Data Variables
+
+Key variables include:
+
+-PUMA
+-FSSTATUS
+-FSSTATUS_extreme
+-FSWROUTY
+-FSWROUTY_extreme
+
+
+For a full list and detailed descriptions of all variables, see `cps_variable_definitions.md`.
+
+## Outputs
+
+- Prediction results aggregated at the PUMA level.
+- CSV file containing predicted proportions of food-insecure populations.
+- **Visualizations**:
+  - Interactive leaflet maps of food insecurity proportions and counts.
+  - Static ggplot choropleth maps of food insecurity proportions and counts.
+
+
+## References
+
+- Dr. Lendie Follett
+- https://cps.ipums.org/cps-action/variables/search
+- Chat GPT, Choropleth Maps, Leaflet Maps, README formatting
+
+---
+
+**Author**: Bridget Brombach (Project Members: Amelia Burnell, Grace Bero, Ahana Yelagar)
+**Date**: 12/11/24
