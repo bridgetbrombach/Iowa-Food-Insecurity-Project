@@ -140,7 +140,7 @@ plot(FSWROUTY_ridge_rocCurve, main="ROC curve for Ridge model on FSWROUTY",print
 # than for them to correctly predict when a household is NOT food insecure.
 
 # We chose Ridge because it's specificity is 0.68 
-# while for Lasso, the specificy is 0.546.
+# while for Lasso, the specificity is 0.546.
 
 # ---- INTERPRETATIONS FOR THE Ridge MODEL ----
 

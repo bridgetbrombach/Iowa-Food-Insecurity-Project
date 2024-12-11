@@ -19,7 +19,7 @@ iowa_pumas <- tigris::pumas(state = "IA", year = 2022, class = "sf")
 
 iowa_map_data <- iowa_pumas %>%
   
-  left_join(acs_data_predict_agg_FWROUTY, by = c("GEOID20" = "GEOID"))
+  left_join(acs_data_predict_agg_FSWROUTY, by = c("GEOID20" = "GEOID"))
 
 
 
@@ -29,18 +29,17 @@ ggplot(data = iowa_map_data) +
   
   geom_sf(aes(fill = proportion_of_population), color = "white", size = 0.2) + # Fill based on 'value'
   
-  scale_fill_viridis_c(option = "plasma", name = "Value", direction = -1) + # Viridis color scale
+  scale_fill_viridis_c(option = "plasma", name = "Proportion*", direction = -1) + # Viridis color scale
   
   theme_minimal() +
   
-  theme(axis.text.x = element_blank(), axis.text.y = element_blank()) +
+  theme(axis.text.x = element_blank(), axis.text.y = element_blank(), plot.caption = element_text(hjust = 0.5) ) +
   
   labs(
     
-    title = "PUMA-Level Choropleth Map of Iowa",
+    title = "Predicted Proportion of Food Insecure Seniors by PUMA",
     
-    subtitle = "Count of Food Insecure Seniors FSWROUTY",
-    
-    caption = "Source: TIGER/Line Shapefiles and "
+    caption = "*Proportion of Iowa households with one or more seniors who have sometimes or often 
+    felt at risk of running out of food and not being able to afford more"
     
   )
