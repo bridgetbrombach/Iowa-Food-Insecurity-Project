@@ -359,6 +359,10 @@ acs.preds <- acs.preds %>%
     ridge_binary = ifelse(ridge_pred > 0.155, 1, 0),
   )
 
+# Creating a proportion graph for variables Kids
+ggplot(data = acs.preds) +
+  geom_histogram(aes(x=kids, fill=ridge_binary), position="fill") +
+  scale_fill_grey() + labs(x="Number of Kids",y="Proportion") 
 
 
 
