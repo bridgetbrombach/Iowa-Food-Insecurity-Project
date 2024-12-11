@@ -13,6 +13,11 @@ library(rpart)
 library(rpart.plot)
 library(logistf)
 
+## ---- y3 is FSSKIPYR ----
+# This code is for the FSSKIPYR y variable. It is a binary variable:
+# 0 if never skipped meals or cut meal size because of not enough money for food in the past year, 
+# 1 if otherwise
+
 ## --- DATA PREP (same for all four models) -------
 # First I will create a subset of the data that only includes the X variables
 
@@ -125,9 +130,43 @@ FSSKIPYR_ridge_rocCurve <- roc(response = as.factor(test.df.preds$FSSKIPYR),
 
 plot(FSSKIPYR_ridge_rocCurve, main="ROC curve for Ridge model on FSSKIPYR",print.thres = TRUE, print.auc = TRUE)
 
+### --- GRAPH THE ROC CURVES --------------------------------------------------------------------------------
+par(mfrow=c(1,1))
+plot(FSSKIPYR_lasso_rocCurve, main="Lasso model", print.thres = TRUE, print.auc = TRUE)
+plot(FSSKIPYR_ridge_rocCurve, main="Ridge Model",print.thres = TRUE, print.auc = TRUE)
+
+#make data frame of lasso ROC info
+lasso_data <- data.frame(
+  Model = "Lasso",
+  Specificity = FSSKIPYR_lasso_rocCurve$specificities,
+  Sensitivity = FSSKIPYR_lasso_rocCurve$sensitivities,
+  AUC = FSSKIPYR_lasso_rocCurve$auc %>% as.numeric
+)
+
+#make data frame of ridge ROC info
+ridge_data <- data.frame(
+  Model = "Ridge",
+  Specificity = FSSKIPYR_ridge_rocCurve$specificities,
+  Sensitivity = FSSKIPYR_ridge_rocCurve$sensitivities,
+  AUC = FSSKIPYR_ridge_rocCurve$auc%>% as.numeric
+)
+
+# Using only lasso and ridge
+roc_data <- rbind(lasso_data, ridge_data)
+
+# Plot the data
+ggplot() +
+  geom_line(aes(x = 1 - Specificity, y = Sensitivity, color = Model),data = roc_data) +
+  geom_text(data = roc_data %>% group_by(Model) %>% slice(1), 
+            aes(x = 0.75, y = c(0.65,0.60), colour = Model,
+                label = paste0(Model, " AUC = ", round(AUC, 3))))+
+  scale_colour_brewer(palette = "Dark2") +
+  labs(title="Comparison of Models for FSSKIPYR:Had to skip a meal", 
+       subtitle="Using Area Under Curve (AUC)",x = "1 - Specificity", y = "Sensitivity", color = "Model") +
+  theme_minimal()
+
 # ---- CHOOSING OUR MODEL -----
 
 # The highest AUC is .606, which is very low. 
 # FSSKIPYR is a variable that WesleyLife could use in the future, 
 # but currently there is not enough data for it to be a useful prediction.
-

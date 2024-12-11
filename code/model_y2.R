@@ -239,7 +239,7 @@ mle_rocCurve <- roc(response=as.factor(test.df.preds$FSWROUTY), #whatever you us
 ## Using Lasso to predict for ACS
 acs.preds <- acs_data %>% 
   mutate(
-    ridge_pred = predict(ridge, acs_data_predict, type="response"),
+    ridge_pred = predict(ridge, acs_data_predict, type="response")[,1],
   )
 
 acs_data_predict_agg_FSWROUTY <- acs.preds %>% 
@@ -247,7 +247,7 @@ acs_data_predict_agg_FSWROUTY <- acs.preds %>%
   group_by(PUMA) %>% 
   summarise(proportion_of_population = weighted.mean(ridge_pred, weights = weights))
 
-total_elderly <- read.csv("data/iowa_seniors_by_puma.csv")
+total_elderly <- read.csv("data/tota_iowa_seniors_by_puma.csv")
 
 acs_data_predict_agg_FSWROUTY <- acs_data_predict_agg_FSWROUTY %>%
   mutate(count_of_seniors = total_elderly$senior_population*proportion_of_population,
@@ -358,5 +358,16 @@ exp(-0.0189948538) #0.9811844
 # 
 # In other words, the odds decrease by about 2% for each additional person in the
 # household. 
+
+### --- Graphing Important Variables ----
+# Using our ridge Pi* from the ROC Curve (0.369) we can convert the predicted probabilities
+# to a binary variable 
+
+acs.preds <- acs.preds %>% 
+  mutate(
+    ridge_binary = ifelse(ridge_pred > 0.369, 1, 0),
+  )
+
+
 
 
