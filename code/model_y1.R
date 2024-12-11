@@ -375,7 +375,17 @@ ggplot(data = acs.preds) +
     subtitle="Using FSSTATUS: Household Food Insecurity Index") +
   scale_x_continuous(breaks = c(0:8)) 
 
-
+ggplot(data = acs.preds) +
+  geom_histogram(aes(x=black, fill=ridge_binary), position="fill", binwidth=1) +
+  scale_fill_grey(
+    name="Food Security\nStatus",
+    labels=c("Secure","Insecure")
+  ) + labs(
+    x="# of Black Identifying People",
+    y="Proportion",
+    title="Proportion of Households with Food Insecurity\nby # of Black Identifying People",
+    subtitle="Using FSSTATUS: Household Food Insecurity Index") +
+  scale_x_continuous(breaks = c(0:10)) 
 
 
 
