@@ -232,7 +232,7 @@ mle_rocCurve <- roc(response=as.factor(test.df.preds$FSSTATUS), #whatever you us
 ## Using Lasso to predict for ACS
 acs.preds <- acs_data %>% 
   mutate(
-    ridge_pred = predict(ridge, acs_data_predict, type="response"),
+    ridge_pred = predict(ridge, acs_data_predict, type="response")[,1],
   )
 
 acs_data_predict_agg_FSSTATUS <- acs.preds %>% 
@@ -353,7 +353,11 @@ exp(0.125515603) #1.133733
 ### --- Graphing Important Variables ----
 # Using our ridge Pi* from the ROC Curve (0.155) we can convert the predicted probabilities
 # to a binary variable 
-acs.preds$ridge_binary <- ifelse(acs.preds$ridge_pred > 0.155, 1, 0)
+
+acs.preds <- acs.preds %>% 
+  mutate(
+    ridge_binary = ifelse(ridge_pred > 0.155, 1, 0),
+  )
 
 
 
