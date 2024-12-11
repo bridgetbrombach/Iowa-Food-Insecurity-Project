@@ -161,7 +161,7 @@ ggplot() +
             aes(x = 0.75, y = c(0.65,0.60), colour = Model,
                 label = paste0(Model, " AUC = ", round(AUC, 3))))+
   scale_colour_brewer(palette = "Dark2") +
-  labs(title="Comparison of Models for FSSKIPYR:Had to skip a meal", 
+  labs(title="Comparison of Models for FSSKIPYR:\nHad to skip a meal", 
        subtitle="Using Area Under Curve (AUC)",x = "1 - Specificity", y = "Sensitivity", color = "Model") +
   theme_minimal()
 
