@@ -140,7 +140,7 @@ plot(FSWROUTY_ridge_rocCurve, main="ROC curve for Ridge model on FSWROUTY",print
 # than for them to correctly predict when a household is NOT food insecure.
 
 # We chose Ridge because it's specificity is 0.68 
-# while for Lasso, the specificity is 0.546.
+# while for Lasso, the specificy is 0.546.
 
 # ---- INTERPRETATIONS FOR THE Ridge MODEL ----
 
@@ -221,6 +221,26 @@ FSWROUTY_rocCurve <- roc(response = test.df$FSWROUTY,
 
 plot(FSWROUTY_rocCurve, print.thres = TRUE, print.auc = TRUE) 
 
+### --- MLE --------------------
+## --- Fitting the model ------
+
+# If all variables are included, the algorithm does not converge
+
+# I included only the top 3 variables based on the variable importance plot below
+
+lr_mle <- glm(as.factor(FSWROUTY) ~ poverty+black+kids,
+              data = train.df,
+              weights = weight,
+              family = binomial(link= "logit"))
+
+test.df.preds<-test.df %>% 
+  mutate(
+    mle_pred=predict(lr_mle,test.df,type="response"))
+
+mle_rocCurve <- roc(response=as.factor(test.df.preds$FSWROUTY), #whatever you used as a y variable
+                    predictor=test.df.preds$mle_pred, #predicted probs
+                    levels=c("0","1"))
+
 ######AGGREGATING AT PUMA LEVEL##########
 
 ## Using Lasso to predict for ACS
@@ -234,7 +254,7 @@ acs_data_predict_agg_FSWROUTY <- acs.preds %>%
   group_by(PUMA) %>% 
   summarise(proportion_of_population = weighted.mean(ridge_pred, weights = weights))
 
-total_elderly <- read.csv("data/iowa_seniors_by_puma.csv")
+total_elderly <- read.csv("data/total_iowa_seniors_by_puma.csv")
 
 acs_data_predict_agg_FSWROUTY <- acs_data_predict_agg_FSWROUTY %>%
   mutate(count_of_seniors = total_elderly$senior_population*proportion_of_population,
@@ -242,11 +262,19 @@ acs_data_predict_agg_FSWROUTY <- acs_data_predict_agg_FSWROUTY %>%
 
 write.csv(acs_data_predict_agg_FSWROUTY,"data/acs_pred_FSWROUTY.csv",row.names=FALSE)
 
-### --- GRAPH THE ROC CURVES ---------------------------------------------------
-par(mfrow=c(1,3))
-plot(FSWROUTY_lasso_rocCurve, main="Lasso model", print.thres = FALSE, print.auc = FALSE)
-plot(FSWROUTY_ridge_rocCurve, main="Ridge Model",print.thres = FALSE, print.auc = FALSE)
-plot(FSWROUTY_rocCurve, print.thres = FALSE, main="Random Forest", print.auc = FALSE)
+### --- GRAPH THE ROC CURVES --------------------------------------------------------------------------------
+par(mfrow=c(1,1))
+plot(FSWROUTY_lasso_rocCurve, main="Lasso model", print.thres = TRUE, print.auc = TRUE)
+plot(FSWROUTY_ridge_rocCurve, main="Ridge Model",print.thres = TRUE, print.auc = TRUE)
+plot(mle_rocCurve, print.thres = TRUE, main="MLE", print.auc = TRUE) 
+
+#make data frame of MLE ROC info
+mle_data <- data.frame(
+  Model = "MLE", 
+  Specificity = mle_rocCurve$specificities,
+  Sensitivity = mle_rocCurve$sensitivities,
+  AUC = as.numeric(mle_rocCurve$auc)
+)
 
 #make data frame of lasso ROC info
 lasso_data <- data.frame(
@@ -255,6 +283,7 @@ lasso_data <- data.frame(
   Sensitivity = FSWROUTY_lasso_rocCurve$sensitivities,
   AUC = FSWROUTY_lasso_rocCurve$auc %>% as.numeric
 )
+
 #make data frame of ridge ROC info
 ridge_data <- data.frame(
   Model = "Ridge",
@@ -264,6 +293,22 @@ ridge_data <- data.frame(
 )
 
 # Combine all the data frames
+roc_data <- rbind(lasso_data, ridge_data,mle_data)
+
+# Plot the data
+ggplot() +
+  geom_line(aes(x = 1 - Specificity, y = Sensitivity, color = Model),data = roc_data) +
+  geom_text(data = roc_data %>% group_by(Model) %>% slice(1), 
+            aes(x = 0.75, y = c(0.75,0.70,0.65), colour = Model,
+                label = paste0(Model, " AUC = ", round(AUC, 3))))+
+  scale_colour_brewer(palette = "Dark2") +
+  labs(title="Comparison of Models for FSWROUTY:\nWorried that food would run out before able to afford more during past year", 
+       subtitle="Using Area Under Curve (AUC)",x = "1 - Specificity", y = "Sensitivity", color = "Model") +
+  theme_minimal()
+
+## Graphing the ROC curve for only lasso and ridge------
+
+# Using only lasso and ridge (no mle)
 roc_data <- rbind(lasso_data, ridge_data)
 
 # Plot the data
@@ -271,15 +316,16 @@ ggplot() +
   geom_line(aes(x = 1 - Specificity, y = Sensitivity, color = Model),data = roc_data) +
   geom_text(data = roc_data %>% group_by(Model) %>% slice(1), 
             aes(x = 0.75, y = c(0.75,0.70), colour = Model,
-                label = paste0(Model, " AUC = ", round(AUC, 3)))) +
+                label = paste0(Model, " AUC = ", round(AUC, 3))))+
   scale_colour_brewer(palette = "Dark2") +
-  labs(x = "1 - Specificity", y = "Sensitivity", color = "Model") +
+  labs(title="Comparison of Models for FSWROUTY:\nWorried that food would run out before able to afford more during past year", 
+       subtitle="Using Area Under Curve (AUC)",x = "1 - Specificity", y = "Sensitivity", color = "Model") +
   theme_minimal()
 
-#Here, it's very hard to see the difference between the two. 
+#Here, it's very hard to see the difference between Lasso and Ridge.  
 #So, we decided that we need to show the more specific plots for the presentation
 
-### --- Variable Importance Plot ------------------------------------------------
+### --- Variance Importance Plot ------------------------------------------------
 par(mfrow=c(1,1))
 varImpPlot(finalforest, type=1)
 vi <- as.data.frame(varImpPlot(finalforest, type=1))
@@ -307,18 +353,14 @@ coef(ridge)
 ## INTERPRETATIONS
 # What happens if a household is in poverty?
 exp(0.3522632244) #1.422283
-# The odds of a household being food insecure increase by about 1.42 times if 
-# a household is in poverty over one that isn't, holding all other variables constant. 
-# 
-# In other words, it could be smart to target households that are in poverty for 
-# meals on wheels 
+# The odds a household will be worried that food would run out
+# before able to afford more increase by about 142% if a household
+# is in poverty, holding all other variables constant.
 
 # What happens when a household size increases by 1
 exp(-0.0189948538) #0.9811844
-# The odds of a household being food insecure change by about .98 times for each
-# additional person in the household, holding all other variables constant. 
-# 
-# In other words, the odds decrease by about 2% for each additional person in the
-# household. 
+# For every additional person in the household, the odds of a household a 
+# household will be worried that food would run out before able to afford more 
+# increase by about 98%
 
 

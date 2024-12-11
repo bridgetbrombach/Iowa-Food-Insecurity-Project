@@ -1,4 +1,3 @@
-<<<<<<< Updated upstream
 rm(list=ls())
 source("code/clean_cps.R") #clean CPS
 source("code/clean_acs.R") #clean ACS
@@ -298,13 +297,19 @@ coef(ridge)
 ### INTERPRETATIONS 
 # What happens when the household is in poverty?
 exp(0.955195852) #2.59918
-# The odds of a household being food insecure increase by about 259.9% if a household
-# is in poverty, holding all other variables constant. 
+# The odds of a household being food insecure increase by about 2.6 times if 
+# a household is in poverty over one that isn't, holding all other variables constant. 
+# 
+# In other words, it could be smart to target households that are in poverty for 
+# meals on wheels 
 
 # What happens if a household has kids?
 exp(0.125515603) #1.133733
-# The odds of a household being food insecure increase by about 113.4% if a household
-# has kids, holding all other variables constant. 
+# The odds of a household being food insecure increase by about 1.1 times for each
+# additional kid in the household, holding all other variables constant. 
+# 
+# In other words, it could be smart to target households with more kids for meals
+# on wheels. 
 
 
 

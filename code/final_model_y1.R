@@ -13,18 +13,18 @@ library(rpart)
 library(rpart.plot)
 library(logistf)
 
-## --- DATA PREP (same for all four models) ---
+## --- DATA PREP (same for all four models) -------
 # First I will create a subset of the data that only includes the X variables
 
 cps_data_models <- cps_data %>% 
-  select(c(FSWROUTY,
+  select(c(FSSTATUS,
            hhsize,education,hispanic,black,asian,married,female,elderly,kids,
            working,femhispanic,donutfamily,femblack,poverty,
            elmar,eled,elfem,elblack,elhispanic,elasian,workeduc,
            weight))
 
-# There are NA values in the FSWROUTY column, so I will remove those
-cps_data_models <- cps_data_models %>% na.omit(cps_data_models$FSWROUTY)
+# There are NA values in the FSSTATUS column, so I will remove those
+cps_data_models <- cps_data_models %>% na.omit(cps_data_models$FSSTATUS)
 
 # Splitting the data into train and testing data sets
 RNGkind(sample.kind="default")
@@ -34,10 +34,10 @@ train.df <- cps_data_models[train.idx,]
 test.df <- cps_data_models[-train.idx,]
 
 # Making test/train matrices
-x.train <- model.matrix(FSWROUTY ~ hhsize+education+hispanic+black+asian+married+female+elderly+kids+
-                          working+femhispanic+donutfamily+femblack+poverty+
-                          elmar+eled+elfem+elblack+elhispanic+elasian+workeduc, data = train.df)[,-1]
-x.test <- model.matrix(FSWROUTY ~ hhsize+education+hispanic+black+asian+married+female+elderly+kids+
+x.train <- model.matrix(FSSTATUS ~ hhsize+education+hispanic+black+asian+married+female+elderly+kids+
+                        working+femhispanic+donutfamily+femblack+poverty+
+                        elmar+eled+elfem+elblack+elhispanic+elasian+workeduc, data = train.df)[,-1]
+x.test <- model.matrix(FSSTATUS ~ hhsize+education+hispanic+black+asian+married+female+elderly+kids+
                          working+femhispanic+donutfamily+femblack+poverty+
                          elmar+eled+elfem+elblack+elhispanic+elasian+workeduc, data = test.df)[,-1]
 
@@ -49,18 +49,11 @@ acs_data_predict <- acs_data %>%
 acs_data_predict <- as.matrix(acs_data_predict)
 
 # Create vectors for y variable
-y.train <- as.vector(train.df$FSWROUTY)
-y.test <- as.vector(test.df$FSWROUTY)
-
-# --- Logistic regression model ------------------------------------------------------------
-#this should be after random forest, using the variables it predicted there
-lr_mle <- glm(FSWROUTY ~ .,
-              data = train.df,
-              weights = weight,
-              family = binomial(link= "logit"))
+y.train <- as.vector(train.df$FSSTATUS)
+y.test <- as.vector(test.df$FSSTATUS)
 
 ### --- Lasso Model ------------------------------------------------------------
-## --- Fitting the model ---
+## --- Fitting the model -------
 
 # 1. Use cross validation to fit (LOTS OF) lasso regressions
 lr_lasso_cv <- cv.glmnet(x.train, 
@@ -89,15 +82,15 @@ test.df.preds <- test.df %>%
     lasso_pred = predict(lasso, x.test, type="response")[,1],
   )
 
-FSWROUTY_lasso_rocCurve <- roc(response = as.factor(test.df.preds$FSWROUTY),
+FSSTATUS_lasso_rocCurve <- roc(response = as.factor(test.df.preds$FSSTATUS),
                       predictor = test.df.preds$lasso_pred, 
                       levels = c("0", "1")) 
 
-plot(FSWROUTY_lasso_rocCurve, main="ROC curve for Lasso model on FSWROUTY", print.thres = TRUE, print.auc = TRUE)
+plot(FSSTATUS_lasso_rocCurve, main="ROC curve for Lasso model on FSSTATUS", print.thres = TRUE, print.auc = TRUE)
 
 
 ### --- Ridge Model ------------------------------------------------------------
-## --- Fitting the model ---
+## --- Fitting the model -------
 
 # ---- Use cross validation to fit ridge regressions -----
 lr_ridge_cv <- cv.glmnet(x.train, 
@@ -126,36 +119,31 @@ test.df.preds <- test.df %>%
     ridge_pred = predict(ridge, x.test, type="response")[,1],
   )
 
-FSWROUTY_ridge_rocCurve <- roc(response = as.factor(test.df.preds$FSWROUTY),
+FSSTATUS_ridge_rocCurve <- roc(response = as.factor(test.df.preds$FSSTATUS),
                       predictor = test.df.preds$ridge_pred, 
                       levels = c("0", "1")) 
 
-plot(FSWROUTY_ridge_rocCurve, main="ROC curve for Ridge model on FSWROUTY",print.thres = TRUE, print.auc = TRUE)
+plot(FSSTATUS_ridge_rocCurve, main="ROC curve for Ridge model on FSSTATUS",print.thres = TRUE, print.auc = TRUE)
 
-# --- CHOOSING THE MODEL -----
+# ---- CHOOSING OUR MODEL -----
 
-# Both Lasso and Ridge have the same AUC: .693.
-# it's more important for us to have a higher sensitivity - true positives.
-# It's more important that Wesley Life correctly predict food insecurity, 
-# than for them to correctly predict when a household is NOT food insecure.
+# The AUC for the Ridge model is .795, which is greater than Lasso's AUC curve of .794.
+# The sensitivity and specificity 
+# We will be using the Ridge model.
 
-# We chose Ridge because it's specificity is 0.68 
-# while for Lasso, the specificity is 0.546.
+# ---- INTERPRETATIONS FOR THE RIDGE MODEL ----
+# the area under the curve is 0.795
 
-# ---- INTERPRETATIONS FOR THE Ridge MODEL ----
-
-# the area under the curve is .693.
-
-# if we set pi* = 0.369, we can achieve a specificity of 0.621, and 
-# sensitivity of 0.68. 
+# if we set pi* = 0.155, we can achieve a specificity of 0.835, and 
+# sensitivity of 0.617. 
 
 # in other words, the model classifies a household as food insecure if the predicted 
-# probability of food insecurity is greater than or equal to 0.369.
+# probability of food insecurity is greater than or equal to 0.155.
 
-# the model correctly identifies 68.0% of households that are not food insecure
+# the model correctly identifies 83.5% of households that are not food insecure
 # (those who have sufficient food resources).
 
-# the model correctly identifies 62.1% of households that are food insecure
+# the model correctly identifies 61.7% of households that are food insecure
 # (those who lack adequate food resources).
 
 ###########RANDOM FOREST##############
@@ -165,7 +153,7 @@ plot(FSWROUTY_ridge_rocCurve, main="ROC curve for Ridge model on FSWROUTY",print
 RNGkind(sample.kind = "default")
 
 #Fit a baseline forest 
-tempforest <- randomForest(as.factor(FSWROUTY) ~ hhsize+education+femhispanic+femblack+
+tempforest <- randomForest(as.factor(FSSTATUS) ~ hhsize+education+femhispanic+femblack+
                              poverty+donutfamily+hispanic+married+female+elderly,
                            data=train.df,
                            ntree = 100,
@@ -183,7 +171,7 @@ keeps <- data.frame(m = rep(NA, length(mtry)),
 for(idx in 1:length(mtry)){
   print(paste0("Trying m = ", mtry[idx]))
   
-  tempforest <- randomForest(as.factor(FSWROUTY) ~ hhsize+education+femhispanic+femblack+poverty+donutfamily+hispanic+married+female+
+  tempforest <- randomForest(as.factor(FSSTATUS) ~ hhsize+education+femhispanic+femblack+poverty+donutfamily+hispanic+married+female+
                                elderly, 
                              data = train.df,
                              ntree = 1000,
@@ -192,7 +180,7 @@ for(idx in 1:length(mtry)){
   
   keeps[idx, "m"] <- mtry[idx]
   
-  keeps[idx, "OOB_err_rate"] <- mean(predict(tempforest) != train.df$FSWROUTY)
+  keeps[idx, "OOB_err_rate"] <- mean(predict(tempforest) != train.df$FSSTATUS)
 }
 
 ggplot(data = keeps) +
@@ -203,7 +191,7 @@ ggplot(data = keeps) +
 # 4 looks to be the optimal number the m that minimizes the 
 # OOB Error Rate
 
-finalforest <- randomForest(as.factor(FSWROUTY) ~ hhsize+education+hispanic+black
+finalforest <- randomForest(as.factor(FSSTATUS) ~ hhsize+education+hispanic+black
   +asian+married+female+elderly+kids+working+femhispanic+donutfamily+femblack+poverty+
     elmar+eled+elfem+elblack+elhispanic+elasian+workeduc, 
                             data = train.df,
@@ -214,12 +202,31 @@ finalforest <- randomForest(as.factor(FSWROUTY) ~ hhsize+education+hispanic+blac
 
 pi_hat <- predict(finalforest, test.df, type = "prob")[,"1"]
 
-FSWROUTY_rocCurve <- roc(response = test.df$FSWROUTY,
+FSSTATUS_rocCurve <- roc(response = test.df$FSSTATUS,
                 predictor = pi_hat,
                 levels = c("0","1"))
 
+plot(FSSTATUS_rocCurve, print.thres = TRUE, print.auc = TRUE) 
 
-plot(FSWROUTY_rocCurve, print.thres = TRUE, print.auc = TRUE) 
+### --- MLE --------------------
+## --- Fitting the model ------
+
+# If all variables are included, the algorithm does not converge
+
+# I included only the top 3 variables based on the variable importance plot below
+
+lr_mle <- glm(as.factor(FSSTATUS) ~ poverty+black+kids,
+              data = train.df,
+              weights = weight,
+              family = binomial(link= "logit"))
+
+test.df.preds<-test.df %>% 
+  mutate(
+    mle_pred=predict(lr_mle,test.df,type="response"))
+
+mle_rocCurve <- roc(response=as.factor(test.df.preds$FSSTATUS), #whatever you used as a y variable
+                    predictor=test.df.preds$mle_pred, #predicted probs
+                    levels=c("0","1"))
 
 ######AGGREGATING AT PUMA LEVEL##########
 
@@ -229,41 +236,67 @@ acs.preds <- acs_data %>%
     ridge_pred = predict(ridge, acs_data_predict, type="response"),
   )
 
-acs_data_predict_agg_FSWROUTY <- acs.preds %>% 
+acs_data_predict_agg_FSSTATUS <- acs.preds %>% 
   filter(elderly >=1) %>% 
   group_by(PUMA) %>% 
   summarise(proportion_of_population = weighted.mean(ridge_pred, weights = weights))
 
-total_elderly <- read.csv("data/iowa_seniors_by_puma.csv")
+total_elderly <- read.csv("data/total_iowa_seniors_by_puma.csv")
 
-acs_data_predict_agg_FSWROUTY <- acs_data_predict_agg_FSWROUTY %>%
+acs_data_predict_agg_FSSTATUS <- acs_data_predict_agg_FSSTATUS %>%
   mutate(count_of_seniors = total_elderly$senior_population*proportion_of_population,
          total_senior_pop=total_elderly$senior_population)
 
-write.csv(acs_data_predict_agg_FSWROUTY,"data/acs_pred_FSWROUTY.csv",row.names=FALSE)
+write.csv(acs_data_predict_agg_FSSTATUS,"data/acs_pred_FSSTATUS.csv",row.names=FALSE)
 
-### --- GRAPH THE ROC CURVES ---------------------------------------------------
-par(mfrow=c(1,3))
-plot(FSWROUTY_lasso_rocCurve, main="Lasso model", print.thres = FALSE, print.auc = FALSE)
-plot(FSWROUTY_ridge_rocCurve, main="Ridge Model",print.thres = FALSE, print.auc = FALSE)
-plot(FSWROUTY_rocCurve, print.thres = FALSE, main="Random Forest", print.auc = FALSE)
+### --- GRAPH THE ROC CURVES --------------------------------------------------------------------------------
+par(mfrow=c(1,1))
+plot(FSSTATUS_lasso_rocCurve, main="Lasso model", print.thres = TRUE, print.auc = TRUE)
+plot(FSSTATUS_ridge_rocCurve, main="Ridge Model",print.thres = TRUE, print.auc = TRUE)
+plot(mle_rocCurve, print.thres = TRUE, main="MLE", print.auc = TRUE) 
+
+
+#make data frame of MLE ROC info
+mle_data <- data.frame(
+  Model = "MLE", 
+  Specificity = mle_rocCurve$specificities,
+  Sensitivity = mle_rocCurve$sensitivities,
+  AUC = as.numeric(mle_rocCurve$auc)
+)
 
 #make data frame of lasso ROC info
 lasso_data <- data.frame(
   Model = "Lasso",
-  Specificity = FSWROUTY_lasso_rocCurve$specificities,
-  Sensitivity = FSWROUTY_lasso_rocCurve$sensitivities,
-  AUC = FSWROUTY_lasso_rocCurve$auc %>% as.numeric
+  Specificity = FSSTATUS_lasso_rocCurve$specificities,
+  Sensitivity = FSSTATUS_lasso_rocCurve$sensitivities,
+  AUC = FSSTATUS_lasso_rocCurve$auc %>% as.numeric
 )
+
 #make data frame of ridge ROC info
 ridge_data <- data.frame(
   Model = "Ridge",
-  Specificity = FSWROUTY_ridge_rocCurve$specificities,
-  Sensitivity = FSWROUTY_ridge_rocCurve$sensitivities,
-  AUC = FSWROUTY_ridge_rocCurve$auc%>% as.numeric
+  Specificity = FSSTATUS_ridge_rocCurve$specificities,
+  Sensitivity = FSSTATUS_ridge_rocCurve$sensitivities,
+  AUC = FSSTATUS_ridge_rocCurve$auc%>% as.numeric
 )
 
 # Combine all the data frames
+roc_data <- rbind(lasso_data, ridge_data,mle_data)
+
+# Plot the data
+ggplot() +
+  geom_line(aes(x = 1 - Specificity, y = Sensitivity, color = Model),data = roc_data) +
+  geom_text(data = roc_data %>% group_by(Model) %>% slice(1), 
+            aes(x = 0.75, y = c(0.75,0.70,0.65), colour = Model,
+                label = paste0(Model, " AUC = ", round(AUC, 3))))+
+  scale_colour_brewer(palette = "Dark2") +
+  labs(title="Comparison of Models for FSSTATUS", 
+       subtitle="Using Area Under Curve (AUC), Specificity and Sensitivity",x = "1 - Specificity", y = "Sensitivity", color = "Model") +
+  theme_minimal()
+
+## Graphing the ROC curve for only lasso and ridge------
+
+# Using only lasso and ridge (no mle)
 roc_data <- rbind(lasso_data, ridge_data)
 
 # Plot the data
@@ -271,15 +304,13 @@ ggplot() +
   geom_line(aes(x = 1 - Specificity, y = Sensitivity, color = Model),data = roc_data) +
   geom_text(data = roc_data %>% group_by(Model) %>% slice(1), 
             aes(x = 0.75, y = c(0.75,0.70), colour = Model,
-                label = paste0(Model, " AUC = ", round(AUC, 3)))) +
+                label = paste0(Model, " AUC = ", round(AUC, 3))))+
   scale_colour_brewer(palette = "Dark2") +
-  labs(x = "1 - Specificity", y = "Sensitivity", color = "Model") +
+  labs(title="Comparison of Models for FSSTATUS:\nWorried that food would run out before able to afford more during past year", 
+       subtitle="Using Area Under Curve (AUC)",x = "1 - Specificity", y = "Sensitivity", color = "Model") +
   theme_minimal()
 
-#Here, it's very hard to see the difference between the two. 
-#So, we decided that we need to show the more specific plots for the presentation
-
-### --- Variable Importance Plot ------------------------------------------------
+### --- Variance Importance Plot ----------------------------------------------------------------------------
 par(mfrow=c(1,1))
 varImpPlot(finalforest, type=1)
 vi <- as.data.frame(varImpPlot(finalforest, type=1))
@@ -290,35 +321,40 @@ ggplot(data = vi) +
     weight=MeanDecreaseAccuracy), position="identity") +
   coord_flip() + 
   labs(x="Variable Name", y="Mean Decrease Accuracy") + 
-  ggtitle("Variable Importance Plot for Variable FSWROUTY:\nWorried that food would run out before able to afford more during past year")
+  ggtitle("Variable Importance Plot for Variable\nFSSTATUS: Household Food Insecurity Index")
 
 # Interpretations
-# In predicting whether or not a household will be worried that food would run out
-# before able to afford more during past year, if a household is 
-# in poverty and household size are the 2 most important variables 
+# In predicting whether or not a household will be food insecure, if a household is 
+# in poverty and if a household has kids are the 2 most important variables. 
 
 # Next we will figure out the direction these factors have on the probability that
-# a household will be worried that food would run out before able to afford more
-# using our best model (Ridge) 
+# a household will be food insecure using our best model (Ridge)
 
 summary(ridge)
 coef(ridge)
 
-## INTERPRETATIONS
-# What happens if a household is in poverty?
-exp(0.3522632244) #1.422283
-# The odds of a household being food insecure increase by about 1.42 times if 
+### INTERPRETATIONS 
+# What happens when the household is in poverty?
+exp(0.955195852) #2.59918
+# The odds of a household being food insecure increase by about 2.6 times if 
 # a household is in poverty over one that isn't, holding all other variables constant. 
 # 
 # In other words, it could be smart to target households that are in poverty for 
 # meals on wheels 
 
-# What happens when a household size increases by 1
-exp(-0.0189948538) #0.9811844
-# The odds of a household being food insecure change by about .98 times for each
-# additional person in the household, holding all other variables constant. 
+# What happens if a household has kids?
+exp(0.125515603) #1.133733
+# The odds of a household being food insecure increase by about 1.1 times for each
+# additional kid in the household, holding all other variables constant. 
 # 
-# In other words, the odds decrease by about 2% for each additional person in the
-# household. 
+# In other words, it could be smart to target households with more kids for meals
+# on wheels. 
+
+
+
+
+
+
+
 
 
