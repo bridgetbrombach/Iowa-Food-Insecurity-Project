@@ -52,13 +52,6 @@ acs_data_predict <- as.matrix(acs_data_predict)
 y.train <- as.vector(train.df$FSSTATUS)
 y.test <- as.vector(test.df$FSSTATUS)
 
-# --- Logistic regression model ------------------------------------------------------------
-#this should be after random forest, using the variables it predicted there
-lr_mle <- glm(FSSTATUS ~ .,
-              data = train.df,
-              weights = weight,
-              family = binomial(link= "logit"))
-
 ### --- Lasso Model ------------------------------------------------------------
 ## --- Fitting the model -------
 
@@ -97,9 +90,7 @@ plot(FSSTATUS_lasso_rocCurve, main="ROC curve for Lasso model on FSSTATUS", prin
 
 
 ### --- Ridge Model ------------------------------------------------------------
-## --- Fitting the model (????) -------
-#??????? was something supposed to be here????
-
+## --- Fitting the model -----
 # ---- Use cross validation to fit ridge regressions -----
 lr_ridge_cv <- cv.glmnet(x.train, 
                          y.train, 
@@ -216,6 +207,26 @@ FSSTATUS_rocCurve <- roc(response = test.df$FSSTATUS,
 
 plot(FSSTATUS_rocCurve, print.thres = TRUE, print.auc = TRUE) 
 
+### --- MLE --------------------
+## --- Fitting the model ------
+
+# If all variables are included, the algorithm does not converge
+
+# I included only the top 3 variables based on the variable importance plot below
+
+lr_mle <- glm(as.factor(FSSTATUS) ~ poverty+black+kids,
+              data = train.df,
+              weights = weight,
+              family = binomial(link= "logit"))
+
+test.df.preds<-test.df %>% 
+  mutate(
+    mle_pred=predict(lr_mle,test.df,type="response"))
+
+mle_rocCurve <- roc(response=as.factor(test.df.preds$FSSTATUS), #whatever you used as a y variable
+                    predictor=test.df.preds$mle_pred, #predicted probs
+                    levels=c("0","1"))
+
 ######AGGREGATING AT PUMA LEVEL##########
 
 ## Using Lasso to predict for ACS
@@ -241,7 +252,15 @@ write.csv(acs_data_predict_agg_FSSTATUS,"data/acs_pred_FSSTATUS.csv",row.names=F
 par(mfrow=c(1,1))
 plot(FSSTATUS_lasso_rocCurve, main="Lasso model", print.thres = TRUE, print.auc = TRUE)
 plot(FSSTATUS_ridge_rocCurve, main="Ridge Model",print.thres = TRUE, print.auc = TRUE)
-plot(FSSTATUS_rocCurve, print.thres = TRUE, main="Random Forest", print.auc = TRUE) 
+plot(mle_rocCurve, print.thres = TRUE, main="MLE", print.auc = TRUE) 
+
+#make data frame of MLE ROC info
+mle_data <- data.frame(
+  Model = "MLE", 
+  Specificity = mle_rocCurve$specificities,
+  Sensitivity = mle_rocCurve$sensitivities,
+  AUC = as.numeric(mle_rocCurve$auc)
+)
 
 #make data frame of lasso ROC info
 lasso_data <- data.frame(
@@ -250,6 +269,7 @@ lasso_data <- data.frame(
   Sensitivity = FSSTATUS_lasso_rocCurve$sensitivities,
   AUC = FSSTATUS_lasso_rocCurve$auc %>% as.numeric
 )
+
 #make data frame of ridge ROC info
 ridge_data <- data.frame(
   Model = "Ridge",
@@ -259,6 +279,22 @@ ridge_data <- data.frame(
 )
 
 # Combine all the data frames
+roc_data <- rbind(lasso_data, ridge_data,mle_data)
+
+# Plot the data
+ggplot() +
+  geom_line(aes(x = 1 - Specificity, y = Sensitivity, color = Model),data = roc_data) +
+  geom_text(data = roc_data %>% group_by(Model) %>% slice(1), 
+            aes(x = 0.75, y = c(0.75,0.70,0.65), colour = Model,
+                label = paste0(Model, " AUC = ", round(AUC, 3))))+
+  scale_colour_brewer(palette = "Dark2") +
+  labs(title="Comparison of Models for FSSTATUS:\nHousehold Food Insecurity", 
+       subtitle="Using Area Under Curve (AUC)",x = "1 - Specificity", y = "Sensitivity", color = "Model") +
+  theme_minimal()
+
+## Graphing the ROC curve for only lasso and ridge------
+
+# Using only lasso and ridge (no mle)
 roc_data <- rbind(lasso_data, ridge_data)
 
 # Plot the data
@@ -266,10 +302,13 @@ ggplot() +
   geom_line(aes(x = 1 - Specificity, y = Sensitivity, color = Model),data = roc_data) +
   geom_text(data = roc_data %>% group_by(Model) %>% slice(1), 
             aes(x = 0.75, y = c(0.75,0.70), colour = Model,
-                label = paste0(Model, " AUC = ", round(AUC, 3)))) +
+                label = paste0(Model, " AUC = ", round(AUC, 3))))+
   scale_colour_brewer(palette = "Dark2") +
-  labs(x = "1 - Specificity", y = "Sensitivity", color = "Model") +
+  labs(title="Comparison of Models for FSSTATUS:\nHousehold Food Insecurity", 
+       subtitle="Using Area Under Curve (AUC)",x = "1 - Specificity", y = "Sensitivity", color = "Model") +
   theme_minimal()
+
+#Here, it's very hard to see the difference between Lasso and Ridge. 
 
 ### --- Variable Importance Plot -----------------------------------------------
 par(mfrow=c(1,1))

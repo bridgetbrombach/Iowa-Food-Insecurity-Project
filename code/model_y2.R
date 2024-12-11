@@ -52,13 +52,6 @@ acs_data_predict <- as.matrix(acs_data_predict)
 y.train <- as.vector(train.df$FSWROUTY)
 y.test <- as.vector(test.df$FSWROUTY)
 
-# --- Logistic regression model ------------------------------------------------------------
-#this should be after random forest, using the variables it predicted there
-lr_mle <- glm(FSWROUTY ~ .,
-              data = train.df,
-              weights = weight,
-              family = binomial(link= "logit"))
-
 ### --- Lasso Model ------------------------------------------------------------
 ## --- Fitting the model ---
 
@@ -228,7 +221,7 @@ plot(FSWROUTY_rocCurve, print.thres = TRUE, print.auc = TRUE)
 
 # I included only the top 3 variables based on the variable importance plot below
 
-lr_mle <- glm(as.factor(FSWROUTY) ~ poverty+black+kids,
+lr_mle <- glm(as.factor(FSWROUTY) ~ poverty+black+hhsize,
               data = train.df,
               weights = weight,
               family = binomial(link= "logit"))
