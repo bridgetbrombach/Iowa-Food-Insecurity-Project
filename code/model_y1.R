@@ -311,13 +311,13 @@ exp(0.125515603) #1.133733
 # In other words, it could be smart to target households with more kids for meals
 # on wheels. 
 
+### --- Graphing Important Variables ----
+# Using our ridge Pi* from the ROC Curve (0.155) we can convert the predicted probabilities
+# to a binary variable 
+acs.preds$ridge_binary <- ifelse(acs.preds$ridge_pred > 0.155, 1, 0)
 
 
 
 
 
 
-
-
-=======
->>>>>>> Stashed changes

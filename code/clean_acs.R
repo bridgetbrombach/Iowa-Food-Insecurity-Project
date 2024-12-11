@@ -9,7 +9,6 @@ acs <- acs%>%
 acs <- acs %>%
   mutate(SEX = Sex - 1 , # since female = 2
          CHILD = ifelse(Age < 18, 1, 0), #SAME as cps definition
-<<<<<<< Updated upstream
          WORKING=ifelse(Age > 17 & Age <60, 1, 0),
          ELDERLY = ifelse(Age > 59, 1, 0), #SAME as cps definition
          ASIAN=ifelse(Race==1,1,0),#SAME as cps definition
