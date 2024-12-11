@@ -375,6 +375,7 @@ ggplot(data = acs.preds) +
     subtitle="Using FSSTATUS: Household Food Insecurity Index") +
   scale_x_continuous(breaks = c(0:8)) 
 
+#Creating a proportion graph for the variable black
 ggplot(data = acs.preds) +
   geom_histogram(aes(x=black, fill=ridge_binary), position="fill", binwidth=1) +
   scale_fill_grey(
@@ -387,6 +388,16 @@ ggplot(data = acs.preds) +
     subtitle="Using FSSTATUS: Household Food Insecurity Index") +
   scale_x_continuous(breaks = c(0:10)) 
 
-
+#Creating a proportion graph for the variable poverty
+ggplot(data = acs.preds) +
+  geom_bar(aes(x=factor(poverty, labels = c("Not In Poverty", "In Poverty")), fill=ridge_binary), position="fill", binwidth=1) +
+  scale_fill_grey(
+    name="Food Security\nStatus",
+    labels=c("Secure","Insecure")
+  ) + labs(
+    x="Poverty Level",
+    y="Proportion",
+    title="Proportion of Households with Food Insecurity\nby Poverty Level",
+    subtitle="Using FSSTATUS: Household Food Insecurity Index") 
 
 
