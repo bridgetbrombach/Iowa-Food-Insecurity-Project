@@ -13,6 +13,11 @@ library(rpart)
 library(rpart.plot)
 library(logistf)
 
+## ---- y3 is FSSKIPYR ----
+# This code is for the FSSKIPYR y variable. It is a binary variable:
+# 0 if never skipped meals or cut meal size because of not enough money for food in the past year, 
+# 1 if otherwise
+
 ## --- DATA PREP (same for all four models) -------
 # First I will create a subset of the data that only includes the X variables
 
