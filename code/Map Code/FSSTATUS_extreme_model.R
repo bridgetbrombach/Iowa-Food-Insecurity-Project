@@ -85,6 +85,43 @@ FSSTATUS_extreme_ridge_rocCurve <- roc(response = as.factor(test.df.preds$FSSTAT
 
 plot(FSSTATUS_extreme_ridge_rocCurve, main="ROC curve for Ridge model on FSSTATUS_extreme",print.thres = TRUE, print.auc = TRUE)
 
+##############Lasso Model#################
+
+# 1. Use cross validation to fit (LOTS OF) lasso regressions
+lr_lasso_cv <- cv.glmnet(x.train, 
+                         y.train, 
+                         weights = train.df$weight,
+                         family=binomial(link="logit"), 
+                         alpha=1)
+
+# 2. Find the best lambda value
+# - Plot the sample error for each lambda value
+plot(lr_lasso_cv)
+# - Pick out the best optimal lambda value
+best_lasso_lambda <- lr_lasso_cv$lambda.min
+
+# 3. Fit the final Model
+lasso <- final_lasso <- glmnet(x.train,
+                               y.train,
+                               family = binomial(link = "logit"),
+                               weights = train.df$weight,
+                               alpha = 1,
+                               lambda = best_lasso_lambda)
+
+## --- Quantify Prediction Performance -----------------------------------------
+test.df.preds <- test.df %>% 
+  mutate(
+    lasso_pred = predict(lasso, x.test, type="response")[,1],
+  )
+
+FSSTATUS_extreme_lasso_rocCurve <- roc(response = as.factor(test.df.preds$FSSTATUS_extreme),
+                               predictor = test.df.preds$lasso_pred, 
+                               levels = c("0", "1")) 
+
+plot(FSSTATUS_extreme_lasso_rocCurve, main="ROC curve for Lasso model on FSSTATUS_extreme", print.thres = TRUE, print.auc = TRUE)
+
+
+
 ######AGGREGATING AT PUMA LEVEL##########
 
 ## Using Ridge Model to predict for ACS

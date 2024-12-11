@@ -84,6 +84,18 @@
             In other words, if a family **is** food secure, 0, if **not** food 
             secure 1
             
+**FSSTATUS_extreme**: Household food security scale
+
+                ----Levels----
+                01: Food Secure
+                02: Low food secure
+                03: Very Low Food Secure
+            
+            If food status > 2, then 1, if not, 0
+            
+            In other words, if a family not very lowfood secure, 0, if low or secure, 1
+
+            
 **FSSTATUSMD**: Detailed Household food security scale, 30-day
                 
                 ------Levels-------
@@ -143,6 +155,19 @@
               In other words, if the household responds anything except "Never 
               True", this is an indication of food insecurity and given a 1.
               
+**FSWROUTY_extreme**: Indicates if, in the past year, the household was worried that 
+              they would run out of food and not be able to afford more.
+              
+              ------Levels------
+              01: Never True
+              02: Sometimes True
+              03: Often True
+              
+              If level > 2, then cell gets 1, otherwise 0
+              
+              In other words, if the household responds anything except "Often 
+              True", they are not deemed food insecure and given a 0.
+              
 **FSBAL**: Indicates whether or not the respondent(s) could not afford to eat 
             balanced meals at any time in the last 12 months.
             
@@ -172,7 +197,7 @@
                 10: 10
                 
                 
-                
+#Refer to 'clean_cps' for further generated X variables.                
               
             
             

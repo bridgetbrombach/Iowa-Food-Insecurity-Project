@@ -29,19 +29,18 @@ ggplot(data = iowa_map_data) +
   
   geom_sf(aes(fill = proportion_of_population), color = "white", size = 0.2) + # Fill based on 'value'
   
-  scale_fill_viridis_c(option = "plasma", name = "Value", direction = -1) + # Viridis color scale
+  scale_fill_viridis_c(option = "plasma", name = "Proportion*", direction = -1) + # Viridis color scale
   
   theme_minimal() +
   
-  theme(axis.text.x = element_blank(), axis.text.y = element_blank()) +
+  theme(axis.text.x = element_blank(), axis.text.y = element_blank(), plot.caption = element_text(hjust = 0.5)) +
   
   labs(
     
-    title = "PUMA-Level Choropleth Map of Iowa",
+    title = "Predicted Proportion of Food Insecure Seniors by PUMA",
     
-    subtitle = "Example Data with Random Values FSSTATUS_extreme",
-    
-    caption = "Source: TIGER/Line Shapefiles and Mock Data"
+    caption = "*Proportion of Iowa households with one or more seniors 
+    who identify as very low food secure"
     
   )
 
