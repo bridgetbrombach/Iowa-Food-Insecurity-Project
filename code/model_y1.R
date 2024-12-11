@@ -390,7 +390,7 @@ ggplot(data = acs.preds) +
 
 #Creating a proportion graph for the variable poverty
 ggplot(data = acs.preds) +
-  geom_bar(aes(x=factor(poverty, labels = c("Not In Poverty", "In Poverty")), fill=ridge_binary), position="fill", binwidth=1) +
+  geom_bar(aes(x=factor(poverty, labels = c("Not In Poverty", "In Poverty")), fill=ridge_binary), position="fill") +
   scale_fill_grey(
     name="Food Security\nStatus",
     labels=c("Secure","Insecure")
