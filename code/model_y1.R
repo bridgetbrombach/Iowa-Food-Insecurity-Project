@@ -1,4 +1,3 @@
-<<<<<<< Updated upstream
 rm(list=ls())
 source("code/clean_cps.R") #clean CPS
 source("code/clean_acs.R") #clean ACS
@@ -312,6 +311,7 @@ exp(0.125515603) #1.133733
 # In other words, it could be smart to target households with more kids for meals
 # on wheels. 
 
+### --- Graphing Variables -----------------------------------------------------
 
 
 
@@ -320,5 +320,4 @@ exp(0.125515603) #1.133733
 
 
 
-=======
->>>>>>> Stashed changes
+
