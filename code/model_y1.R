@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 rm(list=ls())
 source("code/clean_cps.R") #clean CPS
 source("code/clean_acs.R") #clean ACS
@@ -313,3 +314,5 @@ exp(0.125515603) #1.133733
 
 
 
+=======
+>>>>>>> Stashed changes
