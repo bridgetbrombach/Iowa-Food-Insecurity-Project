@@ -247,7 +247,7 @@ acs_data_predict_agg_FSWROUTY <- acs.preds %>%
   group_by(PUMA) %>% 
   summarise(proportion_of_population = weighted.mean(ridge_pred, weights = weights))
 
-total_elderly <- read.csv("data/tota_iowa_seniors_by_puma.csv")
+total_elderly <- read.csv("data/total_iowa_seniors_by_puma.csv")
 
 acs_data_predict_agg_FSWROUTY <- acs_data_predict_agg_FSWROUTY %>%
   mutate(count_of_seniors = total_elderly$senior_population*proportion_of_population,
@@ -368,6 +368,42 @@ acs.preds <- acs.preds %>%
     ridge_binary = ifelse(ridge_pred > 0.369, 1, 0),
   )
 
+acs.preds$ridge_binary <- as.factor(acs.preds$ridge_binary)
 
+#Creating a plot for the variable Poverty
+ggplot(data = acs.preds) +
+  geom_bar(aes(x=factor(poverty, labels = c("Not In Poverty", "In Poverty")), fill=ridge_binary), position="fill") +
+  scale_fill_grey(
+    name="Food Security\nStatus",
+    labels=c("Secure","Insecure")
+  ) + labs(
+    x="Poverty Level",
+    y="Proportion",
+    title="Proportion of Households with Food Insecurity\nby Poverty Level",
+    subtitle="Using FSWROUTY: Worried that food would run out before\nable to afford more during past year") 
 
+# Creating plot for variable Household Size
+ggplot(data = acs.preds) +
+  geom_histogram(aes(x=hhsize, fill=ridge_binary), position="fill", binwidth=1) +
+  scale_fill_grey(
+    name="Food Security\nStatus",
+    labels=c("Secure","Insecure")
+  ) + labs(
+    x="Household Size",
+    y="Proportion",
+    title="Proportion of Households with Food Insecurity\nby Household Size",
+    subtitle="Using FSWROUTY: Worried that food would run out before\nable to afford more during past year") +
+  scale_x_continuous(breaks = c(1:14)) 
 
+#Creating a proportion graph for the variable black
+ggplot(data = acs.preds) +
+  geom_histogram(aes(x=black, fill=ridge_binary), position="fill", binwidth=1) +
+  scale_fill_grey(
+    name="Food Security\nStatus",
+    labels=c("Secure","Insecure")
+  ) + labs(
+    x="# of Black Identifying People",
+    y="Proportion",
+    title="Proportion of Households with Food Insecurity\nby # of Black Identifying People",
+    subtitle="Using FSWROUTY: Worried that food would run out before\nable to afford more during past year") +
+  scale_x_continuous(breaks = c(0:10)) 
